@@ -27,7 +27,7 @@ and its comments, and is rebuilt automatically (GitHub Action, ~2–3 min) whene
 
 ## Commenting on the page
 
-Collaborators can **Sign in with GitHub** on the page and comment directly under each item; the comment
+Anyone can **Sign in with GitHub** on the page and comment directly under each item; the comment
 is posted to the item's issue under their own GitHub account. Sign-in uses the GitHub App
 *HL7 Austria IG Comparison* (Issues: read & write, installed on this repo only). Its one-time login code is
 exchanged for a token by a Cloudflare Worker ([`worker/`](worker/), `hl7at-ig-comparison-auth`), because that

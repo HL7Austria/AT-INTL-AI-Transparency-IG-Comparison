@@ -525,7 +525,7 @@ document.addEventListener('keydown', e => {
    Signing in goes through the GitHub App of this repo; the Worker in worker/ swaps the one-time
    code for a user token (kept in sessionStorage only). Comments are posted as the signed-in user.
    Everyone sees the comments of the opened item live from the GitHub API (falls back to the copy
-   baked in at build time). Only repo collaborators get the comment box. */
+   baked in at build time). Anyone signed in to GitHub can comment. */
 const GH = { repo: DATA.repo || null, auth: DATA.auth || null, token: null, user: null, canComment: false, fetched: {} };
 function ghHeaders(extra){
   const h = {'Accept': 'application/vnd.github.html+json', 'X-GitHub-Api-Version': '2022-11-28'};
@@ -562,7 +562,7 @@ function renderAuth(){
   const el = document.getElementById('gh-auth');
   if (!GH.auth || !GH.repo) { el.innerHTML = ''; return; }
   el.innerHTML = GH.user
-    ? '<img src="' + esc(GH.user.avatar_url) + '&s=40" alt=""><span>' + esc(GH.user.login) + (GH.canComment ? '' : ' (read only)') + '</span><button id="gh-out">Sign out</button>'
+    ? '<img src="' + esc(GH.user.avatar_url) + '&s=40" alt=""><span>' + esc(GH.user.login) + '</span><button id="gh-out">Sign out</button>'
     : '<button id="gh-in" title="Sign in to comment on the items">Sign in with GitHub</button>';
   const i = document.getElementById('gh-in'), o = document.getElementById('gh-out');
   if (i) i.onclick = signIn; if (o) o.onclick = signOut;
@@ -571,7 +571,6 @@ function composerHTML(it){
   const gl = '<a class="reply" href="' + esc(it.issue.url) + '#new_comment_field" target="_blank" rel="noopener">Answer on GitHub &#8599;</a>';
   if (!GH.auth || !GH.repo) return gl;
   if (!GH.user) return '<div class="composer"><div class="row"><button class="sec gh-signin">Sign in with GitHub to comment</button>' + gl + '</div></div>';
-  if (!GH.canComment) return '<div class="composer"><div class="muted">Signed in as ' + esc(GH.user.login) + '. Only collaborators of the repository can comment here; you can still answer on GitHub.</div>' + gl + '</div>';
   return '<div class="composer" data-issue="' + it.issue.number + '"><textarea placeholder="Comment as ' + esc(GH.user.login) + ' (Markdown supported)"></textarea>' +
     '<div class="row"><button class="c-post">Comment</button><span class="muted">posted to issue #' + it.issue.number + ' as ' + esc(GH.user.login) + '</span></div></div>';
 }
@@ -631,9 +630,7 @@ async function initAuth(){
   if (s) {
     GH.token = s.token;
     try {
-      const [u, repo] = await Promise.all([gh('/user'), gh('/repos/' + GH.repo)]);
-      const p = repo.permissions || {};
-      GH.user = u; GH.canComment = !!(p.push || p.triage || p.maintain || p.admin);
+      GH.user = await gh('/user'); GH.canComment = true;
     } catch(e) { GH.token = null; sessionStorage.removeItem('gh-auth'); authMsg('Your sign-in expired, please sign in again.'); }
   }
   renderAuth(); rerenderCards();
