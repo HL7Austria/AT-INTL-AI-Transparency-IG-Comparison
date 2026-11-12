@@ -1,6 +1,6 @@
 # HL7 Austria vs HL7 International: AI Transparency IG comparison
 
-**Page:** https://hl7austria.github.io/AT-INTL-AI-Transparency-IG-Comparison/
+**Page:** https://fhir.hl7.at/AT-INTL-AI-Transparency-IG-Comparison/
 
 Side-by-side comparison of the two AI Transparency FHIR IGs:
 
