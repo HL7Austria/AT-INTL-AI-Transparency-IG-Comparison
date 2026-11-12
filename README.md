@@ -25,6 +25,17 @@ and its comments, and is rebuilt automatically (GitHub Action, ~2–3 min) whene
   `equivalent`, `severity:*`). Labels win over the hidden block.
 - **Resolved** items: close the issue; the page keeps showing them, marked *closed*.
 
+## Commenting on the page
+
+Collaborators can **Sign in with GitHub** on the page and comment directly under each item; the comment
+is posted to the item's issue under their own GitHub account. Sign-in uses the GitHub App
+*HL7 Austria IG Comparison* (Issues: read & write, installed on this repo only). Its one-time login code is
+exchanged for a token by a Cloudflare Worker ([`worker/`](worker/), `hl7at-ig-comparison-auth`), because that
+step needs the app's client secret. The token stays in the browser tab (sessionStorage), and the Worker stores nothing.
+Config: `auth` in `comparison.json`.
+Redeploy the Worker: `cd worker && npx wrangler deploy`. Rotate the secret: `npx wrangler secret put GH_CLIENT_SECRET`
+(run in a normal terminal so it can prompt).
+
 ## Build locally
 
 ```bash

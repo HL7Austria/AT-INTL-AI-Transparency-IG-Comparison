@@ -942,7 +942,7 @@ def build(args):
     (out / "compared.json").write_text(json.dumps(compared, indent=2) + "\n")
 
     payload = {"items": diffs["items"], "summary": diffs.get("summary", {}), "compared": compared,
-               "repo": diffs.get("repo"),
+               "repo": diffs.get("repo"), "auth": diffs.get("auth") if diffs.get("repo") else None,
                "kinds": KINDS, "recon": RECON}
     page = (HERE / "template.html").read_text(encoding="utf-8")
     for k, m in models.items():

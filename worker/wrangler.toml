@@ -1,0 +1,9 @@
+# Token exchange for "Sign in with GitHub" on the comparison page.
+# Deploy: npx wrangler deploy   ·   secret: npx wrangler secret put GH_CLIENT_SECRET
+name = "hl7at-ig-comparison-auth"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+GH_CLIENT_ID = "Iv23li4OcsdZoj3gsUeY"   # GitHub App "HL7 Austria IG Comparison" (public, not a secret)
+ALLOWED_ORIGINS = "https://fhir.hl7.at"

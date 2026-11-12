@@ -88,6 +88,17 @@ blockquote{margin:6px 0;padding:2px 10px;border-left:3px solid #c3cbd6;color:#44
 .cmt-h img{width:20px;height:20px;border-radius:50%}
 .cmt-b{padding:4px 10px;font-size:13px;overflow-x:auto}.cmt-b p{margin:4px 0}.cmt-b img{max-width:100%}
 .muted{color:var(--muted);font-size:12px}
+#gh-auth{display:flex;align-items:center;gap:6px;font-size:12px;color:#c9d1db}
+#gh-auth img{width:20px;height:20px;border-radius:50%}
+#gh-auth a{color:#c9d1db}
+#gh-msg{display:none;position:fixed;top:48px;right:12px;z-index:50;max-width:420px;background:#fff8e1;border:1px solid #e0a800;border-radius:6px;padding:8px 12px;font-size:13px;box-shadow:0 2px 8px #0002}
+#gh-msg.show{display:block}
+.composer{margin-top:6px}
+.composer textarea{width:100%;min-height:70px;font:13px/1.4 system-ui,sans-serif;padding:6px;border:1px solid var(--line);border-radius:6px;resize:vertical;box-sizing:border-box}
+.composer .row{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+.composer button{font-size:12px;padding:4px 12px;border-radius:6px;border:1px solid #1f883d;background:#1f883d;color:#fff;cursor:pointer}
+.composer button.sec{background:#f6f8fa;color:var(--ink);border-color:var(--line)}
+.composer button:disabled{opacity:.6;cursor:default}
 a.reply{display:inline-block;margin-top:4px;font-size:12px;padding:3px 10px;border:1px solid var(--line);border-radius:6px;text-decoration:none;background:#f6f8fa}
 details.example{border-top:1px solid var(--soft);padding:2px 0}
 details.example summary{cursor:pointer;font-size:12px}
@@ -195,8 +206,10 @@ section.region.unmatched-sec{border-left:2px dashed #c3cbd6;padding-left:6px}
   <h1>AI Transparency on FHIR: HL7 Austria (left) vs HL7 International (right)</h1>
   <div class="meta" id="topmeta"></div>
   <div class="grow"></div>
+  <span id="gh-auth"></span>
   <button id="btn-clear" title="Clear selection and filters (Esc)">Clear</button>
 </div>
+<div id="gh-msg"></div>
 <div id="grid">
   <div class="col" id="col-at">
     <div class="colhead"><span class="tag">AT</span><span class="grow">%%AT_HEAD%%</span><button data-toc="toc-at">Contents</button></div>
@@ -384,7 +397,7 @@ function discussionHTML(it){
     ' <a href="' + esc(it.issue.url) + '" target="_blank" rel="noopener">issue #' + it.issue.number + ' on GitHub &#8599;</a></div>' +
     (cs.length ? cs.map(c => '<div class="cmt"><div class="cmt-h"><img src="' + esc(c.avatar) + '" alt="" loading="lazy"><b>' + esc(c.author) + '</b> <a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(fmtDate(c.created)) + '</a>' + (c.updated !== c.created ? ' <span class="muted">(edited)</span>' : '') + '</div><div class="cmt-b">' + c.body_html + '</div></div>').join('')
                : '<div class="muted">No comments yet.</div>') +
-    '<a class="reply" href="' + esc(it.issue.url) + '#new_comment_field" target="_blank" rel="noopener">Answer on GitHub &#8599;</a>' +
+    composerHTML(it) +
     '</div>';
 }
 function cardHTML(it){
@@ -420,6 +433,7 @@ function renderList(){
 document.getElementById('list').addEventListener('click', e => {
   const chip = e.target.closest('.rchip');
   if (chip && chip.dataset.ref) { e.stopPropagation(); goto(chip.dataset.side, chip.dataset.ref); return; }
+  if (e.target.closest('.disc')) return;
   if (e.target.closest('a')) return;
   const card = e.target.closest('.card'); if (!card) return;
   if (selected === card.dataset.id && e.target.closest('.t')) { card.classList.toggle('sel'); return; }
@@ -502,13 +516,134 @@ document.getElementById('btn-summary').onclick = () => { const s = document.getE
 function clearAll(){ F.scen.clear(); F.recon.clear(); F.kind.clear(); F.severity.clear(); F.presence.clear(); F.level.clear(); F.unc = false; F.q = ''; F.region = null; selected = null; clearHL(); document.querySelectorAll('#filters .chip.on').forEach(c => c.classList.remove('on')); const q = $('#q'); if (q) q.value = ''; syncCounts(); renderList(); history.replaceState(null, '', location.pathname); }
 document.getElementById('btn-clear').onclick = clearAll;
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if (e.key === 'Escape') e.target.blur(); return; }
   if (e.key === 'Escape') { clearAll(); document.querySelectorAll('.toc.open').forEach(t => t.classList.remove('open')); }
   if (e.key === 'j' || e.key === 'k') { const cards = [...document.querySelectorAll('#list .card')]; if (!cards.length) return; let i = cards.findIndex(c => c.dataset.id === selected); i = e.key === 'j' ? Math.min(cards.length - 1, i + 1) : Math.max(0, i - 1); select(cards[i].dataset.id); }
 });
 
+/* ---------- GitHub sign-in + comments ----------
+   Signing in goes through the GitHub App of this repo; the Worker in worker/ swaps the one-time
+   code for a user token (kept in sessionStorage only). Comments are posted as the signed-in user.
+   Everyone sees the comments of the opened item live from the GitHub API (falls back to the copy
+   baked in at build time). Only repo collaborators get the comment box. */
+const GH = { repo: DATA.repo || null, auth: DATA.auth || null, token: null, user: null, canComment: false, fetched: {} };
+function ghHeaders(extra){
+  const h = {'Accept': 'application/vnd.github.html+json', 'X-GitHub-Api-Version': '2022-11-28'};
+  if (GH.token) h.Authorization = 'Bearer ' + GH.token;
+  return Object.assign(h, extra || {});
+}
+async function gh(path, opts){
+  const r = await fetch('https://api.github.com' + path, Object.assign({headers: ghHeaders()}, opts || {}));
+  if (!r.ok) { const e = new Error(r.status + ' ' + (await r.text()).slice(0, 200)); e.status = r.status; throw e; }
+  return r.status === 204 ? null : r.json();
+}
+function authMsg(text){ const m = document.getElementById('gh-msg'); m.textContent = text; m.classList.add('show'); clearTimeout(authMsg.t); authMsg.t = setTimeout(() => m.classList.remove('show'), 8000); }
+function storedSession(){ try { return JSON.parse(sessionStorage.getItem('gh-auth') || 'null'); } catch(e) { return null; } }
+async function exchange(payload){
+  const r = await fetch(GH.auth.token_url, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)});
+  const t = await r.json().catch(() => ({}));
+  if (!r.ok || !t.access_token) throw new Error(t.error_description || t.error || ('HTTP ' + r.status));
+  const s = {token: t.access_token, exp: Date.now() + ((t.expires_in || 28800) - 60) * 1000, refresh: t.refresh_token || null};
+  sessionStorage.setItem('gh-auth', JSON.stringify(s));
+  return s;
+}
+function signIn(){
+  const state = (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
+  sessionStorage.setItem('gh-state', state);
+  sessionStorage.setItem('gh-return', location.hash);
+  const u = new URL('https://github.com/login/oauth/authorize');
+  u.searchParams.set('client_id', GH.auth.client_id);
+  u.searchParams.set('redirect_uri', location.origin + location.pathname);
+  u.searchParams.set('state', state);
+  location.href = u.toString();
+}
+function signOut(){ sessionStorage.removeItem('gh-auth'); GH.token = GH.user = null; GH.canComment = false; renderAuth(); rerenderCards(); }
+function renderAuth(){
+  const el = document.getElementById('gh-auth');
+  if (!GH.auth || !GH.repo) { el.innerHTML = ''; return; }
+  el.innerHTML = GH.user
+    ? '<img src="' + esc(GH.user.avatar_url) + '&s=40" alt=""><span>' + esc(GH.user.login) + (GH.canComment ? '' : ' (read only)') + '</span><button id="gh-out">Sign out</button>'
+    : '<button id="gh-in" title="Sign in to comment on the items">Sign in with GitHub</button>';
+  const i = document.getElementById('gh-in'), o = document.getElementById('gh-out');
+  if (i) i.onclick = signIn; if (o) o.onclick = signOut;
+}
+function composerHTML(it){
+  const gl = '<a class="reply" href="' + esc(it.issue.url) + '#new_comment_field" target="_blank" rel="noopener">Answer on GitHub &#8599;</a>';
+  if (!GH.auth || !GH.repo) return gl;
+  if (!GH.user) return '<div class="composer"><div class="row"><button class="sec gh-signin">Sign in with GitHub to comment</button>' + gl + '</div></div>';
+  if (!GH.canComment) return '<div class="composer"><div class="muted">Signed in as ' + esc(GH.user.login) + '. Only collaborators of the repository can comment here; you can still answer on GitHub.</div>' + gl + '</div>';
+  return '<div class="composer" data-issue="' + it.issue.number + '"><textarea placeholder="Comment as ' + esc(GH.user.login) + ' (Markdown supported)"></textarea>' +
+    '<div class="row"><button class="c-post">Comment</button><span class="muted">posted to issue #' + it.issue.number + ' as ' + esc(GH.user.login) + '</span></div></div>';
+}
+function rerenderCard(id){
+  const card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]'); if (!card) return;
+  const sel = card.classList.contains('sel'), ta = card.querySelector('.composer textarea'), draft = ta ? ta.value : '';
+  card.outerHTML = cardHTML(BY[id]);
+  const n = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
+  if (n && sel) n.classList.add('sel');
+  const nt = n && n.querySelector('.composer textarea'); if (nt && draft) nt.value = draft;
+}
+function rerenderCards(){ document.querySelectorAll('#list .card').forEach(c => rerenderCard(c.dataset.id)); }
+function toComment(c){ return {author: c.user.login, avatar: c.user.avatar_url + '&s=48', url: c.html_url, created: c.created_at, updated: c.updated_at, body_html: c.body_html || '', body: c.body || ''}; }
+async function liveComments(id, force){
+  const it = BY[id]; if (!it || !it.issue || !GH.repo || SELFTEST) return;
+  const last = GH.fetched[id] || 0; if (!force && Date.now() - last < 60000) return;
+  GH.fetched[id] = Date.now();
+  try {
+    const cs = await gh('/repos/' + GH.repo + '/issues/' + it.issue.number + '/comments?per_page=100');
+    it.issue.comments = cs.map(toComment); rerenderCard(id);
+  } catch(e) { /* rate limit or offline: keep the comments baked in at build time */ }
+}
+document.getElementById('list').addEventListener('click', async e => {
+  if (e.target.closest('.gh-signin')) { signIn(); return; }
+  const btn = e.target.closest('.c-post'); if (!btn) return;
+  const box = btn.closest('.composer'), ta = box.querySelector('textarea'), body = ta.value.trim();
+  if (!body) { ta.focus(); return; }
+  const id = btn.closest('.card').dataset.id, it = BY[id];
+  btn.disabled = true; btn.textContent = 'Posting…';
+  try {
+    const c = await gh('/repos/' + GH.repo + '/issues/' + it.issue.number + '/comments', {method: 'POST', headers: ghHeaders({'Content-Type': 'application/json'}), body: JSON.stringify({body})});
+    it.issue.comments.push(toComment(c)); ta.value = ''; rerenderCard(id);
+    authMsg('Comment posted to issue #' + it.issue.number + '. The published page picks it up in a few minutes.');
+  } catch(err) {
+    btn.disabled = false; btn.textContent = 'Comment';
+    authMsg(err.status === 401 ? 'Your sign-in expired, please sign in again.' : 'Could not post the comment: ' + err.message);
+    if (err.status === 401) signOut();
+  }
+});
+async function initAuth(){
+  if (!GH.auth || !GH.repo || SELFTEST) return;
+  const q = new URLSearchParams(location.search);
+  if (q.get('code')) {
+    const ok = q.get('state') && q.get('state') === sessionStorage.getItem('gh-state');
+    const ret = sessionStorage.getItem('gh-return') || '';
+    sessionStorage.removeItem('gh-state'); sessionStorage.removeItem('gh-return');
+    history.replaceState(null, '', location.pathname + ret);
+    if (!ok) authMsg('Sign-in failed (state mismatch), please try again.');
+    else { try { await exchange({code: q.get('code')}); } catch(e) { authMsg('Sign-in failed: ' + e.message); } }
+    const m2 = ret.match(/item=([^&]+)/); if (m2 && BY[decodeURIComponent(m2[1])]) select(decodeURIComponent(m2[1]));
+  } else if (q.get('error')) {
+    history.replaceState(null, '', location.pathname + location.hash);
+    authMsg('Sign-in cancelled: ' + (q.get('error_description') || q.get('error')));
+  }
+  let s = storedSession();
+  if (s && s.exp <= Date.now()) { try { s = s.refresh ? await exchange({refresh_token: s.refresh}) : null; } catch(e) { s = null; } if (!s) sessionStorage.removeItem('gh-auth'); }
+  if (s) {
+    GH.token = s.token;
+    try {
+      const [u, repo] = await Promise.all([gh('/user'), gh('/repos/' + GH.repo)]);
+      const p = repo.permissions || {};
+      GH.user = u; GH.canComment = !!(p.push || p.triage || p.maintain || p.admin);
+    } catch(e) { GH.token = null; sessionStorage.removeItem('gh-auth'); authMsg('Your sign-in expired, please sign in again.'); }
+  }
+  renderAuth(); rerenderCards();
+  if (selected) liveComments(selected, true);
+}
+const _selectBase = select;
+select = function(id, noscroll){ _selectBase(id, noscroll); liveComments(id); };
+
 /* ---------- init ---------- */
-decorate(); buildFilters(); buildSummary(); renderList();
+decorate(); buildFilters(); buildSummary(); renderList(); renderAuth(); initAuth();
 const m = location.hash.match(/item=([^&]+)/);
 if (m && BY[decodeURIComponent(m[1])]) { const id = decodeURIComponent(m[1]); select(id, true); window.addEventListener('load', () => setTimeout(() => select(id), 30)); }
 

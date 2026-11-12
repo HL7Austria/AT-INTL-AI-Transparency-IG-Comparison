@@ -66,5 +66,9 @@
     "source": "eu-analysis/sources/confluence-2026-10-27.md (HL7 Europe AI Transparency IG proposal, TNT-approved 05.10.2026; Brainstorming page 22.10.2026)",
     "fhir_versions": "R4 (4.0.1) and R5 (5.0.0); R6 to be considered",
     "dependencies": "HL7 Intl hl7.fhir.uv.aitransparency; HL7 Europe Base and Core"
+  },
+  "auth": {
+    "client_id": "Iv23li4OcsdZoj3gsUeY",
+    "token_url": "https://hl7at-ig-comparison-auth.p40984-15b.workers.dev/token"
   }
 }
