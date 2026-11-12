@@ -1,0 +1,9 @@
+# The two IG versions this comparison renders. CI checks them out into igs/at and igs/intl.
+# To move to a newer IG version: change the commit, re-review the affected issues, and update
+# comparison.json "analysed_against" (the page shows a "Re-review" banner until both match).
+at:
+  repo: HL7Austria/AIST-TrustworthyAI-R5
+  commit: 2fcd7f30d8e1109a5b177a9f45ceba54ee489f9d
+intl:
+  repo: HL7/aitransparency-ig
+  commit: 6d0a39f97a4040cc193ca1ab95fc57b52506cdb0

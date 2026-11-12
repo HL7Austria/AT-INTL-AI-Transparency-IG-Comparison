@@ -1,0 +1,70 @@
+{
+  "analysed_against": {
+    "at": "2fcd7f30d8e1109a5b177a9f45ceba54ee489f9d",
+    "intl": "6d0a39f97a4040cc193ca1ab95fc57b52506cdb0"
+  },
+  "method": "Curated by reading the FSH sources, the SUSHI 3.18.1 output (fsh-generated/), the pagecontent markdown, sushi-config.yaml and the git history of both repos, plus the FHIR R4 4.0.1 / R5 5.0.0 core packages in ~/.fhir/packages for base-resource facts. The IG Publisher was not run. Derivation chain assumed: HL7 International -> HL7 EU -> HL7 Austria, each level only constraining or extending the one above.",
+  "summary": {
+    "version_assessment": "The AT IG is built on **FHIR R5 5.0.0**, the Intl IG on **FHIR R4 4.0.1**. A profile can only constrain a base of the same FHIR version, so no AT profile can name an Intl profile as its parent today. This is still the root unreconcilable. The approved **HL7 Europe AI Transparency IG targets R4 and R5** (R6 to be considered), with Intl and HL7 Europe Base/Core as dependencies (Base exists for both versions, see below), so the EU layer resolves it structurally, but not evenly across the two versions.\n\n**EU R4 package.** It can derive directly from `hl7.fhir.uv.aitransparency` 1.0.0, so the chain Intl → EU works today. The cost is the AT content that is R5-only. That content needs cross-version extensions or `Basic` in R4: ArtifactAssessment (scenario 4, human oversight), `Device.name`/`conformsTo` and typed `Device.property.value[x]` (scenario 2), `Provenance.authorization` for the GDPR legal basis (scenario 6) and the R5 AuditEvent shape (scenario 6).\n\n**EU R5 package.** It has no Intl parent until Intl publishes an R5 edition. Until then the EU R5 profiles can only *mirror* Intl, keeping the same codes, extension URLs and slice names. That needs explicit mappings: `derivation` → `instantiates` for the entity role, `reason[AIReason]` → an `authorization` slice, `deviceName` → `name`, and a `Device.type` slice instead of a pattern on the whole element. AT (R5) then derives from the EU R5 package, and AT's R5 prototype is the natural starting content for it.\n\n**Ask Intl for an R5 (or R6) edition.** Intl's `future.md` and FHIR-54180 already point that way, and an R5 edition would let the EU R5 package derive as well instead of mirroring. Until it exists, the EU R4 and R5 packages should be generated from one source with one set of mappings, so they do not drift apart.\n\n**Precedent and dependencies are in place** (packages.fhir.org registry, checked 27.10.2026). HL7 Europe Base exists in both versions, as `hl7.fhir.eu.base` (R4, latest 2.0.1) and `hl7.fhir.eu.base-r5`. HL7 Europe already publishes R4/R5 twins for other IGs (`hl7.fhir.eu.imaging` / `hl7.fhir.eu.imaging-r5`, `hl7.fhir.eu.mpd` / `hl7.fhir.eu.mpd-r5`), as well as `hl7.fhir.eu.extensions.r4` / `.r5`. An AI Transparency pair (for example `hl7.fhir.eu.aitransparency` / `-r5`) would follow an established pattern, and the EU extensions twins are a natural home for the cross-version extensions the R4 package needs. On the Austrian side, `hl7.at.fhir.core.r5` 2.0.0 (R5) exists, so the AT IG can stay on R5 and derive from the EU R5 package and the Austrian R5 core.\n\nSuggested line for the chair: HL7 EU publishes an R4/R5 pair like its imaging and MPD IGs. It derives the R4 profiles from Intl 1.0.0 and EU Base, mirrors Intl in R5 on top of `hl7.fhir.eu.base-r5` under documented mappings, and files the R5-edition request at Intl. AT stays on R5 and derives from the EU R5 package.",
+    "key_modelling": [
+      {
+        "text": "**AI labelling.** Intl makes the `AIAST` security label in `meta.security` the one mandatory mechanism (SHALL). AT instead uses its own four-code involvement CodeSystem, through a profile on abstract `Resource` and a slice in `Observation.interpretation`. None of the AT examples carries `AIAST`.",
+        "items": [
+          "label-aiast",
+          "graded-involvement",
+          "resource-profile",
+          "obs-interpretation"
+        ]
+      },
+      {
+        "text": "**Human oversight.** Intl records the human-in-the-loop as a `Provenance.agent` (verifier). AT records it in a separate R5-only ArtifactAssessment and, through `agent.who only Trust_AIDevice`, forbids any human agent in its Provenance.",
+        "items": [
+          "oversight",
+          "prov-agent"
+        ]
+      },
+      {
+        "text": "**Model card.** Both IGs use **DocumentReference**, so there is no base-resource clash. They differ in the type code, the Device link extension and format handling. AT also adds structured EU AI Act metadata as extensions, while Intl treats the card as an opaque Hugging Face/CHAI document.",
+        "items": [
+          "mc-base",
+          "mc-type-code",
+          "mc-link-ext",
+          "mc-content",
+          "mc-structured"
+        ]
+      },
+      {
+        "text": "**Provenance.** Intl's Provenance is optional and lightweight, with AI and human agent slices and model-card/prompt entities. AT's Provenance mandates GDPR/EHDS legal context, allows only the device as agent and fixes `role = source` on every entity. On top of that, Intl's fixed `derivation` code does not exist in R5.",
+        "items": [
+          "prov-agent",
+          "prov-entity-role",
+          "entity-role-r5",
+          "prov-legal-context",
+          "prov-reason-authorization"
+        ]
+      },
+      {
+        "text": "**Level.** Every requirement in the AT IG comes from EU law (AI Act, GDPR, EHDS), and nothing in it is Austria-specific. Almost all AT-only content therefore belongs at the EU level, with AT deriving from EU.",
+        "items": [
+          "no-austrian-content",
+          "scope",
+          "requirements-traceability"
+        ]
+      }
+    ],
+    "eu_scenarios": {
+      "1": "Identifying AI involvement",
+      "2": "Retrieving info about an AI-enabled system",
+      "3": "Referencing external documentation (model cards etc.)",
+      "4": "Human oversight",
+      "5": "Patient explanation (AI Act Art. 86)",
+      "6": "Execution traceability incl. log integrity",
+      "7": "EHDS secondary use / data permits"
+    }
+  },
+  "eu_proposal": {
+    "source": "eu-analysis/sources/confluence-2026-10-27.md (HL7 Europe AI Transparency IG proposal, TNT-approved 05.10.2026; Brainstorming page 22.10.2026)",
+    "fhir_versions": "R4 (4.0.1) and R5 (5.0.0); R6 to be considered",
+    "dependencies": "HL7 Intl hl7.fhir.uv.aitransparency; HL7 Europe Base and Core"
+  }
+}

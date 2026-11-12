@@ -1,0 +1,85 @@
+name: Build comparison page
+
+# Rebuilds the page whenever the code changes or a comparison issue / comment changes,
+# so the page always shows the current item texts and discussion threads.
+on:
+  push:
+    branches: [main]
+  issues:
+    types: [opened, edited, deleted, closed, reopened, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; a burst of comments collapses into the latest pending run
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    if: >-
+      (github.event_name != 'issues' && github.event_name != 'issue_comment')
+      || contains(github.event.issue.labels.*.name, 'comparison-item')
+      || github.event.action == 'unlabeled'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read pinned IG commits
+        id: pins
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import yaml
+          c = yaml.safe_load(open("compare.yaml"))
+          for side in ("at", "intl"):
+              print(f"{side}_repo={c[side]['repo']}")
+              print(f"{side}_commit={c[side]['commit']}")
+          PY
+
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.pins.outputs.at_repo }}
+          ref: ${{ steps.pins.outputs.at_commit }}
+          path: igs/at
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.pins.outputs.intl_repo }}
+          ref: ${{ steps.pins.outputs.intl_commit }}
+          path: igs/intl
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g fsh-sushi@3.18.1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml pillow
+
+      - name: Build page from the issues
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 build.py --issues "${{ github.repository }}" --out site --selftest
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

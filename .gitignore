@@ -1,0 +1,5 @@
+site/
+igs/
+__pycache__/
+compared.json
+index.html

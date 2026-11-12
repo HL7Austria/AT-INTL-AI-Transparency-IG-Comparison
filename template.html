@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Transparency IGs: HL7 Austria vs HL7 International</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#fff; --ink:#1d232b; --muted:#5d6875; --line:#d9dee5; --soft:#eef1f5;
+  --at:#b3261e; --intl:#1f5fa8;
+  --r-unrec:#c62828; --r-change:#d98a00; --r-derive:#2e6fd1; --r-equiv:#2e8b57;
+  --hl:#fff3b0; --hlline:#e0b400;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+code{font:12px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--soft);padding:0 3px;border-radius:3px}
+a{color:#1f5fa8}
+#top{height:42px;display:flex;align-items:center;gap:14px;padding:0 12px;background:#1d232b;color:#fff}
+#top h1{font-size:15px;margin:0;font-weight:600}
+#top .meta{font-size:11.5px;color:#c9d1db}
+#top .meta code{background:#333c47;color:#fff}
+#top .grow{flex:1}
+#top button{background:#333c47;color:#fff;border:1px solid #4a5563;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px}
+#grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(360px,0.78fr) minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:calc(100vh - 42px)}
+.col{display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-right:1px solid var(--line);position:relative}
+.colhead{flex:0 0 auto;padding:6px 10px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;font-size:12px}
+.colhead .tag{font-weight:700;color:#fff;border-radius:3px;padding:1px 6px}
+#col-at .tag{background:var(--at)} #col-intl .tag{background:var(--intl)} #col-mid .tag{background:#444}
+.colhead .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.colhead button{font-size:12px;padding:2px 8px;border:1px solid var(--line);background:var(--soft);border-radius:4px;cursor:pointer}
+.body{flex:1 1 auto;min-height:0;overflow:auto;padding:8px 12px 40vh 12px;scroll-behavior:auto}
+.toc{display:none;position:absolute;top:36px;left:0;right:0;max-height:70%;overflow:auto;background:var(--panel);border-bottom:2px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.15);z-index:20;padding:6px 12px 12px}
+.toc.open{display:block}
+.toc ul{margin:0 0 4px 0;padding-left:16px}
+.toc li{margin:1px 0}
+.toc a{text-decoration:none;color:var(--ink)}
+.toc a:hover{text-decoration:underline}
+.toc-group{font-weight:700;margin-top:8px;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.04em}
+.tocdot{display:inline-block;min-width:16px;text-align:center;border-radius:8px;font-size:10px;color:#fff;margin-left:4px;padding:0 4px}
+h1.group{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line);margin:22px 0 8px;padding-bottom:2px}
+article.artifact,article.page{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:0 0 12px}
+.art-title{font-size:15px;margin:0 0 6px}
+.art-title .kind{font-size:11px;font-weight:400;color:var(--muted);margin-left:6px}
+.srcline{font-size:11px;color:var(--muted);margin-bottom:4px;word-break:break-all}
+.desc{margin:4px 0 6px;color:#333}
+.note{color:var(--muted);font-size:12px}
+table{border-collapse:collapse}
+table.kv{font-size:12px;margin-bottom:4px}
+table.kv th{text-align:left;color:var(--muted);font-weight:500;padding:1px 10px 1px 0;vertical-align:top;white-space:nowrap}
+table.kv td{padding:1px 0;word-break:break-word}
+.tbl-wrap{overflow-x:auto}
+table.els,table.md{width:100%;font-size:12px;margin:4px 0 6px}
+table.els th,table.md th{background:var(--soft);text-align:left;padding:3px 5px;border:1px solid var(--line);font-weight:600}
+table.els td,table.md td{border:1px solid var(--line);padding:3px 5px;vertical-align:top}
+table.els:not(.codes){table-layout:fixed}
+table.els:not(.codes) th:nth-child(1){width:23%}table.els:not(.codes) th:nth-child(2){width:8%}table.els:not(.codes) th:nth-child(3){width:17%}table.els:not(.codes) th:nth-child(4){width:19%}table.els:not(.codes) th:nth-child(5){width:4%}
+table.els td{overflow-wrap:anywhere}
+td.path{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px}
+td.path .slice{color:#7a3db8;font-weight:600}
+td.path .loc{display:block;color:#8a95a3;font-size:10px}
+td.card{white-space:nowrap}
+.card-chg{font-weight:700}
+.basecard{display:block;color:#8a95a3;font-size:10px}
+td.ms{text-align:center;font-weight:700;color:#b35c00}
+.short{font-weight:600}
+.def,.cmt{color:#444}
+.req{color:#6a4a00;background:#fff8e1;padding:0 3px;border-radius:2px;margin-top:2px}
+.inv{color:#5b2e86;margin-top:2px}
+.strength{font-size:10.5px;padding:0 4px;border-radius:3px;background:#e7ebf0}
+.s-required{background:#fde2e1}.s-extensible{background:#fff0d6}.s-preferred{background:#e2f0ff}
+.fixed{display:inline-block;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#1a5d2a}
+.slicing{display:inline-block;font-size:11px;color:#7a3db8}
+pre.code{background:#f3f5f8;border:1px solid var(--line);padding:6px;overflow:auto;max-height:340px;font-size:11.5px}
+.code-cap{font-size:11px;color:var(--muted)}
+blockquote{margin:6px 0;padding:2px 10px;border-left:3px solid #c3cbd6;color:#444;background:#fafbfc}
+.liquid{font-size:11px;color:var(--muted);border:1px dashed var(--line);padding:3px 6px;margin:4px 0}
+.local-link{border-bottom:1px dotted #8a95a3}
+.md-img{max-width:100%;height:auto;border:1px solid var(--line)}
+.missing-img{color:var(--muted)}
+.stu-note{background:#fff8e1;border-left:3px solid #e0b400;padding:4px 8px}
+.inum{font-weight:700;color:var(--muted);text-decoration:none}.inum:hover{text-decoration:underline}
+.ccount{font-size:11px;color:var(--muted);white-space:nowrap}
+.b.closed{background:#6e7781;color:#fff}
+.disc{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
+.disc-h{font-weight:700;font-size:12px;margin-bottom:4px}.disc-h a{font-weight:400;margin-left:6px}
+.cmt{border:1px solid var(--line);border-radius:6px;margin:6px 0;background:#fff}
+.cmt-h{display:flex;align-items:center;gap:6px;font-size:12px;padding:4px 8px;background:#f6f8fa;border-bottom:1px solid var(--line);border-radius:6px 6px 0 0}
+.cmt-h img{width:20px;height:20px;border-radius:50%}
+.cmt-b{padding:4px 10px;font-size:13px;overflow-x:auto}.cmt-b p{margin:4px 0}.cmt-b img{max-width:100%}
+.muted{color:var(--muted);font-size:12px}
+a.reply{display:inline-block;margin-top:4px;font-size:12px;padding:3px 10px;border:1px solid var(--line);border-radius:6px;text-decoration:none;background:#f6f8fa}
+details.example{border-top:1px solid var(--soft);padding:2px 0}
+details.example summary{cursor:pointer;font-size:12px}
+details.intro{margin:4px 0;border:1px solid var(--soft);padding:2px 6px;border-radius:4px}
+details.intro summary{cursor:pointer;font-size:12px;color:var(--muted)}
+.sec{color:#7a3db8}
+.page h3,.page h4,.page h5,.page h6{margin:10px 0 4px}
+.page h3{font-size:14px}.page h4{font-size:13.5px}.page h5,.page h6{font-size:13px}
+
+/* region state */
+.region.has-diff{cursor:pointer}
+article.region.has-diff,section.region.has-diff,details.region.has-diff{box-shadow:-3px 0 0 0 var(--rc,#999)}
+tr.region.has-diff>td:first-child{box-shadow:inset 3px 0 0 0 var(--rc,#999)}
+.region[data-recon="unreconcilable"]{--rc:var(--r-unrec)}
+.region[data-recon="reconcilable-with-change"]{--rc:var(--r-change)}
+.region[data-recon="at-only-derivable"]{--rc:var(--r-derive)}
+.region[data-recon="equivalent"]{--rc:var(--r-equiv)}
+.region.hl{background:var(--hl)!important;outline:2px solid var(--hlline);outline-offset:-1px}
+tr.region.hl>td{background:var(--hl)}
+.region.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{outline:3px solid #ff6d00}100%{outline:3px solid transparent}}
+.region.hoverpeer{outline:1px dashed #555;outline-offset:-1px}
+.dbadge{display:inline-block;font-size:10px;font-weight:600;color:#fff;background:var(--rc,#777);border-radius:8px;padding:0 6px;margin-left:6px;vertical-align:middle;white-space:nowrap;font-family:system-ui,sans-serif}
+.only{display:inline-block;font-size:10px;font-weight:600;border-radius:3px;padding:0 5px;margin-left:6px;vertical-align:middle;white-space:nowrap;border:1px solid;font-family:system-ui,sans-serif}
+.only.at{color:var(--at);border-color:var(--at);background:#fff1f0}
+.only.intl{color:var(--intl);border-color:var(--intl);background:#eef5ff}
+.only.weak{opacity:.75;border-style:dashed}
+article.region.unmatched{border-style:dashed}
+section.region.unmatched-sec{border-left:2px dashed #c3cbd6;padding-left:6px}
+
+/* middle lane */
+#col-mid{background:#fbfcfd}
+#mid-body{padding:8px 10px 40vh}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin-bottom:10px}
+.panel h2{font-size:14px;margin:0 0 6px}
+.panel h3{font-size:12.5px;margin:8px 0 4px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.counts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.count{border-radius:6px;padding:6px;color:#fff;cursor:pointer;text-align:center;user-select:none}
+.count b{display:block;font-size:20px;line-height:1.1}
+.count span{font-size:10.5px}
+.count.unreconcilable{background:var(--r-unrec)}.count.reconcilable-with-change{background:var(--r-change)}
+.count.at-only-derivable{background:var(--r-derive)}.count.equivalent{background:var(--r-equiv)}
+.count.off{opacity:.35}
+.kindtable{width:100%;font-size:11.5px}
+.kindtable td{padding:1px 4px;border-bottom:1px solid var(--soft)}
+.kindtable td.n{text-align:right;width:28px}
+.kindtable .bar{height:8px;display:flex;border-radius:2px;overflow:hidden}
+.kindtable .bar i{display:block;height:100%}
+.headline li{margin:3px 0}
+.linkitem{cursor:pointer;color:#1f5fa8;text-decoration:underline dotted}
+.banner{border-radius:6px;padding:6px 8px;margin-bottom:8px;font-size:12px}
+.banner.warn{background:#fff3e0;border:1px solid #f0b46a}
+.banner.err{background:#fdecea;border:1px solid #e57373}
+.banner.info{background:#eef5ff;border:1px solid #9cc0ef}
+.filters{display:flex;flex-direction:column;gap:5px}
+.frow{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.frow>label.fl{font-size:11px;color:var(--muted);width:66px}
+.chip{font-size:11px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:1px 7px;cursor:pointer;user-select:none}
+.chip.on{background:#1d232b;color:#fff;border-color:#1d232b}
+#q{flex:1;min-width:120px;padding:3px 6px;border:1px solid var(--line);border-radius:4px;font-size:12px}
+.listinfo{font-size:11.5px;color:var(--muted);margin:4px 0 6px;display:flex;gap:8px;align-items:center}
+.card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--rc,#999);border-radius:6px;margin-bottom:7px;padding:6px 8px;cursor:pointer}
+.card[data-recon="unreconcilable"]{--rc:var(--r-unrec)}
+.card[data-recon="reconcilable-with-change"]{--rc:var(--r-change)}
+.card[data-recon="at-only-derivable"]{--rc:var(--r-derive)}
+.card[data-recon="equivalent"]{--rc:var(--r-equiv)}
+.card.sel{box-shadow:0 0 0 2px #1d232b}
+.card.peer{box-shadow:0 0 0 2px var(--hlline);background:#fffdf0}
+.card .t{font-weight:600;font-size:13px}
+.card .badges{display:flex;flex-wrap:wrap;gap:3px;margin:3px 0}
+.b{font-size:10px;border-radius:3px;padding:0 5px;background:var(--soft);color:#333;white-space:nowrap}
+.b.recon{background:var(--rc);color:#fff;font-weight:600}
+.b.sev-high{background:#2b2b2b;color:#fff}.b.sev-medium{background:#7a8594;color:#fff}.b.sev-low{background:#dfe4ea}
+.b.scen{background:#e0f2ef;color:#0b5d52}
+.b.lvl{background:#e9e1f7;color:#4b2a85}
+.b.unc{background:#fff3cd;color:#7a5600;border:1px solid #e0b400}
+.b.pres-at-only{background:#fff1f0;color:var(--at)}.b.pres-intl-only{background:#eef5ff;color:var(--intl)}
+.card .detail{display:none;margin-top:4px;font-size:12.5px}
+.card.sel .detail{display:block}
+.card .detail p{margin:3px 0 5px}
+.card .tp{border-left:3px solid #1d232b;background:#f3f5f8;padding:4px 8px;margin:6px 0;font-style:italic}
+.card .chg{background:#fff8e1;border-radius:4px;padding:2px 8px;margin:4px 0}
+.card .uncn{background:#fff3cd;border-radius:4px;padding:2px 8px;margin:4px 0}
+.refs{margin:4px 0}
+.refs .side{font-size:11px;font-weight:700;margin-right:4px}
+.refs .side.at{color:var(--at)}.refs .side.intl{color:var(--intl)}
+.rchip{display:inline-block;font:11px ui-monospace,Menlo,monospace;border:1px solid var(--line);background:#fff;border-radius:3px;padding:0 4px;margin:1px 2px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
+.rchip:hover{background:var(--hl)}
+.rchip.none{cursor:default;color:var(--muted);border-style:dashed}
+.ev{font-size:11px;color:var(--muted);margin:3px 0 0;padding-left:16px}
+#tip{position:fixed;z-index:50;display:none;background:#1d232b;color:#fff;border-radius:6px;padding:6px 8px;font-size:12px;max-width:420px;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:none}
+#tip .ti{margin:2px 0;padding-left:8px;border-left:4px solid var(--rc,#999)}
+#tip .ti[data-recon="unreconcilable"]{--rc:var(--r-unrec)}#tip .ti[data-recon="reconcilable-with-change"]{--rc:var(--r-change)}
+#tip .ti[data-recon="at-only-derivable"]{--rc:var(--r-derive)}#tip .ti[data-recon="equivalent"]{--rc:var(--r-equiv)}
+#tip .hint{color:#aab4c0;font-size:11px;margin-top:3px}
+.legend{font-size:11.5px}
+.legend dt{font-weight:700;margin-top:4px}
+.legend dd{margin:0 0 0 10px;color:#444}
+.kbd{font:11px ui-monospace,monospace;border:1px solid var(--line);border-radius:3px;padding:0 3px;background:#fff}
+#selftest-result{display:none}
+</style>
+</head>
+<body>
+<div id="top">
+  <h1>AI Transparency on FHIR: HL7 Austria (left) vs HL7 International (right)</h1>
+  <div class="meta" id="topmeta"></div>
+  <div class="grow"></div>
+  <button id="btn-clear" title="Clear selection and filters (Esc)">Clear</button>
+</div>
+<div id="grid">
+  <div class="col" id="col-at">
+    <div class="colhead"><span class="tag">AT</span><span class="grow">%%AT_HEAD%%</span><button data-toc="toc-at">Contents</button></div>
+    <nav class="toc" id="toc-at">%%AT_TOC%%</nav>
+    <div class="body side" id="body-at" data-side="at">%%AT_BODY%%</div>
+  </div>
+  <div class="col" id="col-mid">
+    <div class="colhead"><span class="tag">Diff</span><span class="grow">Differences under the chain Intl &rarr; EU &rarr; AT</span><button id="btn-summary">Summary</button></div>
+    <div class="body" id="mid-body">
+      <div id="banners"></div>
+      <div class="panel" id="summary"></div>
+      <div class="panel">
+        <div class="filters" id="filters"></div>
+      </div>
+      <div class="listinfo" id="listinfo"></div>
+      <div id="list"></div>
+    </div>
+  </div>
+  <div class="col" id="col-intl">
+    <div class="colhead"><span class="tag">Intl</span><span class="grow">%%INTL_HEAD%%</span><button data-toc="toc-intl">Contents</button></div>
+    <nav class="toc" id="toc-intl">%%INTL_TOC%%</nav>
+    <div class="body side" id="body-intl" data-side="intl">%%INTL_BODY%%</div>
+  </div>
+</div>
+<div id="tip"></div>
+<pre id="selftest-result"></pre>
+<script type="application/json" id="data">%%DATA%%</script>
+<script>
+(function(){
+"use strict";
+const DATA = JSON.parse(document.getElementById('data').textContent);
+const ITEMS = DATA.items, BY = {};
+ITEMS.forEach(it => BY[it.id] = it);
+const RECON = DATA.recon, KINDS = DATA.kinds;
+const RLABEL = {"unreconcilable":"unreconcilable","reconcilable-with-change":"reconcilable with change","at-only-derivable":"AT-only, derivable","equivalent":"equivalent"};
+const RRANK = {"unreconcilable":0,"reconcilable-with-change":1,"at-only-derivable":2,"equivalent":3};
+const SEVRANK = {high:0, medium:1, low:2};
+const SIDEKEY = {at:'left_refs', intl:'right_refs'};
+const SIDELABEL = {at:'AT', intl:'Intl'};
+const body = {at: document.getElementById('body-at'), intl: document.getElementById('body-intl')};
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const SELFTEST = location.hash.indexOf('selftest') >= 0;
+
+/* ---------- region index ---------- */
+const REG = {at:new Map(), intl:new Map()};
+for (const s of ['at','intl']) body[s].querySelectorAll('.region[data-ref]').forEach(el => { if (!REG[s].has(el.dataset.ref)) REG[s].set(el.dataset.ref, el); });
+const REFITEMS = {at:new Map(), intl:new Map()};
+ITEMS.forEach(it => { for (const s of ['at','intl']) (it[SIDEKEY[s]]||[]).forEach(r => { if (!REFITEMS[s].has(r)) REFITEMS[s].set(r, []); REFITEMS[s].get(r).push(it.id); }); });
+
+function worst(ids){ let w = 'equivalent'; ids.forEach(id => { if (RRANK[BY[id].reconcilability] < RRANK[w]) w = BY[id].reconcilability; }); return w; }
+function badgeHost(el){
+  if (el.tagName === 'TR') return el.firstElementChild;
+  if (el.tagName === 'DETAILS') return el.querySelector(':scope > summary');
+  return el.querySelector(':scope > h1, :scope > h2, :scope > h3, :scope > h4, :scope > h5, :scope > h6') || el;
+}
+function decorate(){
+  for (const s of ['at','intl']) {
+    const other = s === 'at' ? 'intl' : 'at';
+    REG[s].forEach((el, ref) => {
+      const ids = REFITEMS[s].get(ref);
+      if (!ids) return;
+      el.classList.add('has-diff');
+      el.dataset.recon = worst(ids);
+      const host = badgeHost(el);
+      const b = document.createElement('span');
+      b.className = 'dbadge'; b.textContent = ids.length + (ids.length === 1 ? ' diff' : ' diffs');
+      b.style.setProperty('--rc', getComputedStyle(el).getPropertyValue('--rc'));
+      host.appendChild(b);
+      const oneSided = ids.every(id => (BY[id][SIDEKEY[other]]||[]).length === 0);
+      if (oneSided) {
+        const o = document.createElement('span');
+        o.className = 'only ' + s; o.textContent = 'only in ' + SIDELABEL[s];
+        o.title = 'Every diff item that refers to this region has no counterpart on the ' + SIDELABEL[other] + ' side';
+        host.appendChild(o);
+      }
+    });
+    // unmatched: top-level articles / page sections without any diff reference inside
+    body[s].querySelectorAll('article.region, section.region').forEach(el => {
+      if (el.classList.contains('has-diff') || el.querySelector('.has-diff')) return;
+      if (el.tagName === 'ARTICLE') {
+        el.classList.add('unmatched');
+        const o = document.createElement('span');
+        o.className = 'only weak ' + s; o.textContent = 'only in ' + SIDELABEL[s] + ' (no diff item)';
+        o.title = 'No diff item refers to this artifact or page: either it has no counterpart on the other side, or it was judged not relevant to alignment';
+        badgeHost(el).appendChild(o);
+      } else el.classList.add('unmatched-sec');
+    });
+  }
+  // TOC counters
+  document.querySelectorAll('.toc a[data-tocref]').forEach(a => {
+    const s = a.closest('.toc').id === 'toc-at' ? 'at' : 'intl';
+    const ref = a.dataset.tocref; const ids = new Set();
+    REFITEMS[s].forEach((v, r) => { if (r === ref || r.startsWith(ref + '/') || r.startsWith(ref + '#')) v.forEach(x => ids.add(x)); });
+    if (ids.size) { const d = document.createElement('span'); d.className = 'tocdot'; d.textContent = ids.size; d.style.background = 'var(' + ({"unreconcilable":"--r-unrec","reconcilable-with-change":"--r-change","at-only-derivable":"--r-derive","equivalent":"--r-equiv"})[worst([...ids])] + ')'; a.after(d); }
+  });
+}
+
+/* ---------- navigation ---------- */
+function openAncestors(el){ for (let p = el; p; p = p.parentElement) if (p.tagName === 'DETAILS') p.open = true; }
+function scrollToRegion(el, flash){
+  if (!el) return;
+  openAncestors(el);
+  const col = el.closest('.body');
+  const top = el.getBoundingClientRect().top - col.getBoundingClientRect().top + col.scrollTop;
+  col.scrollTop = Math.max(0, top - col.clientHeight * 0.25);
+  if (flash) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+}
+function goto(side, ref){
+  let el = REG[side].get(ref);
+  if (!el) { // fall back to the nearest parent ref (page:x#a -> page:x)
+    const parent = ref.replace(/[#/][^#/]*$/, '');
+    if (parent !== ref) el = REG[side].get(parent);
+  }
+  scrollToRegion(el, true);
+  return !!el;
+}
+
+/* ---------- selection ---------- */
+let selected = null;
+function clearHL(){ document.querySelectorAll('.region.hl').forEach(e => e.classList.remove('hl')); }
+function select(id, noscroll){
+  const it = BY[id]; if (!it) return;
+  selected = id; clearHL();
+  document.querySelectorAll('.card.sel').forEach(c => c.classList.remove('sel'));
+  const card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
+  if (card) card.classList.add('sel');
+  for (const s of ['at','intl']) {
+    let first = null;
+    (it[SIDEKEY[s]]||[]).forEach(r => { const el = REG[s].get(r); if (el) { el.classList.add('hl'); openAncestors(el); if (!first) first = el; } });
+    if (first && !noscroll) scrollToRegion(first, false);
+  }
+  if (card && !noscroll) { const mb = document.getElementById('mid-body'); const t = card.getBoundingClientRect().top - mb.getBoundingClientRect().top; if (t < 0 || t > mb.clientHeight - 80) mb.scrollTop += t - 60; }
+  if (!SELFTEST) history.replaceState(null, '', '#item=' + encodeURIComponent(id));
+}
+
+/* ---------- filters + list ---------- */
+const SCEN = (DATA.summary||{}).eu_scenarios || {};
+const F = {recon:new Set(), kind:new Set(), severity:new Set(), presence:new Set(), level:new Set(), scen:new Set(), unc:false, q:'', region:null};
+function chipRow(label, key, values, fmt){
+  const row = document.createElement('div'); row.className = 'frow';
+  row.innerHTML = '<label class="fl">' + label + '</label>';
+  values.forEach(v => { const c = document.createElement('span'); c.className = 'chip'; c.textContent = fmt ? fmt(v) : v; c.dataset.v = v;
+    c.onclick = () => { F[key].has(v) ? F[key].delete(v) : F[key].add(v); c.classList.toggle('on'); renderList(); syncCounts(); }; row.appendChild(c); });
+  return row;
+}
+function buildFilters(){
+  const f = document.getElementById('filters');
+  const kinds = KINDS.filter(k => ITEMS.some(i => i.kind === k));
+  f.appendChild(chipRow('Reconcil.', 'recon', RECON, v => RLABEL[v]));
+  f.appendChild(chipRow('Category', 'kind', kinds));
+  f.appendChild(chipRow('Severity', 'severity', ['high','medium','low']));
+  f.appendChild(chipRow('Presence', 'presence', ['both','at-only','intl-only']));
+  f.appendChild(chipRow('Belongs in', 'level', ['Intl','EU','AT']));
+  if (Object.keys(SCEN).length) { const r = chipRow('EU scen.', 'scen', Object.keys(SCEN), v => v + ' ' + SCEN[v]); r.querySelectorAll('.chip').forEach(c => c.title = 'HL7 Europe IG scenario ' + c.dataset.v); f.appendChild(r); }
+  const row = document.createElement('div'); row.className = 'frow';
+  row.innerHTML = '<label class="fl">Search</label><input id="q" placeholder="title, text, element path..."> <span class="chip" id="f-unc" title="Only items where the analysis is marked uncertain">uncertain only</span>';
+  f.appendChild(row);
+  $('#q').oninput = e => { F.q = e.target.value.toLowerCase(); renderList(); };
+  $('#f-unc').onclick = e => { F.unc = !F.unc; e.target.classList.toggle('on'); renderList(); };
+}
+function matches(it){
+  if (F.region && !F.region.ids.includes(it.id)) return false;
+  if (F.recon.size && !F.recon.has(it.reconcilability)) return false;
+  if (F.kind.size && !F.kind.has(it.kind)) return false;
+  if (F.severity.size && !F.severity.has(it.severity)) return false;
+  if (F.presence.size && !F.presence.has(it.presence)) return false;
+  if (F.level.size && !F.level.has(it.suggested_level)) return false;
+  if (F.unc && !it.uncertain) return false;
+  if (F.scen.size && !(it.eu_scenarios||[]).some(x => F.scen.has(String(x)))) return false;
+  if (F.q) { const hay = [it.id, it.title, it.explanation, it.change||'', it.talking_point, (it.left_refs||[]).join(' '), (it.right_refs||[]).join(' '), (it.evidence||[]).join(' ')].join(' ').toLowerCase(); if (!hay.includes(F.q)) return false; }
+  return true;
+}
+function refChips(it, s){
+  const refs = it[SIDEKEY[s]] || [];
+  if (!refs.length) return '<div class="refs"><span class="side ' + s + '">' + SIDELABEL[s] + ':</span><span class="rchip none">nothing on this side</span></div>';
+  return '<div class="refs"><span class="side ' + s + '">' + SIDELABEL[s] + ':</span>' + refs.map(r => '<span class="rchip" data-side="' + s + '" data-ref="' + esc(r) + '" title="' + esc(r) + '">' + esc(r.replace(/^(sd|cs|vs|ex|page):/, '')) + '</span>').join('') + '</div>';
+}
+function fmtDate(iso){ try { return new Date(iso).toLocaleString('de-AT', {dateStyle:'medium', timeStyle:'short'}); } catch(e) { return iso; } }
+function discussionHTML(it){
+  if (!it.issue) return '';
+  const cs = it.issue.comments || [];
+  // body_html comes from the GitHub API, which sanitises rendered markdown
+  return '<div class="disc"><div class="disc-h">Discussion' + (cs.length ? ' (' + cs.length + ')' : '') +
+    ' <a href="' + esc(it.issue.url) + '" target="_blank" rel="noopener">issue #' + it.issue.number + ' on GitHub &#8599;</a></div>' +
+    (cs.length ? cs.map(c => '<div class="cmt"><div class="cmt-h"><img src="' + esc(c.avatar) + '" alt="" loading="lazy"><b>' + esc(c.author) + '</b> <a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(fmtDate(c.created)) + '</a>' + (c.updated !== c.created ? ' <span class="muted">(edited)</span>' : '') + '</div><div class="cmt-b">' + c.body_html + '</div></div>').join('')
+               : '<div class="muted">No comments yet.</div>') +
+    '<a class="reply" href="' + esc(it.issue.url) + '#new_comment_field" target="_blank" rel="noopener">Answer on GitHub &#8599;</a>' +
+    '</div>';
+}
+function cardHTML(it){
+  return '<div class="card" data-id="' + esc(it.id) + '" data-recon="' + it.reconcilability + '">' +
+    '<div class="t">' + (it.issue ? '<a class="inum" href="' + esc(it.issue.url) + '" target="_blank" rel="noopener" title="Open the GitHub issue">#' + it.issue.number + '</a> ' : '') + esc(it.title) +
+      (it.issue && it.issue.comments.length ? ' <span class="ccount" title="' + it.issue.comments.length + ' comment(s)">&#128172; ' + it.issue.comments.length + '</span>' : '') +
+      (it.issue && it.issue.state === 'closed' ? ' <span class="b closed">closed</span>' : '') + '</div>' +
+    '<div class="badges"><span class="b recon">' + RLABEL[it.reconcilability] + '</span><span class="b">' + esc(it.kind) + '</span>' +
+    '<span class="b sev-' + it.severity + '">' + it.severity + '</span><span class="b lvl" title="Where the content belongs">&rarr; ' + esc(it.suggested_level) + '</span>' +
+    (it.presence !== 'both' ? '<span class="b pres-' + it.presence + '">' + (it.presence === 'at-only' ? 'only in AT' : 'only in Intl') + '</span>' : '') +
+    (it.uncertain ? '<span class="b unc">uncertain</span>' : '') +
+    ((it.eu_scenarios||[]).length ? '<span class="b scen" title="' + esc((it.eu_scenarios||[]).map(x => 'EU scenario ' + x + ': ' + (SCEN[x]||'')).join('\n')) + '">EU sc. ' + (it.eu_scenarios.length === 7 ? 'all' : it.eu_scenarios.join(',')) + '</span>' : '') + '<span class="b">' + esc(it.id) + '</span></div>' +
+    '<div class="detail">' + (it.explanation_html||'') +
+    (it.change_html ? '<div class="chg"><b>What should change:</b>' + it.change_html + '</div>' : '') +
+    (it.uncertainty_html ? '<div class="uncn"><b>Uncertain:</b>' + it.uncertainty_html + '</div>' : '') +
+    '<div class="tp">&ldquo;' + it.talking_point_html + '&rdquo;</div>' +
+    refChips(it, 'at') + refChips(it, 'intl') +
+    ((it.evidence||[]).length ? '<ul class="ev">' + it.evidence.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul>' : '') +
+    discussionHTML(it) +
+    '</div></div>';
+}
+function sortItems(a, b){ return RRANK[a.reconcilability] - RRANK[b.reconcilability] || SEVRANK[a.severity] - SEVRANK[b.severity] || a.id.localeCompare(b.id, undefined, {numeric:true}); }
+function renderList(){
+  const list = document.getElementById('list');
+  const vis = ITEMS.filter(matches).sort(sortItems);
+  list.innerHTML = vis.map(cardHTML).join('');
+  let info = vis.length + ' of ' + ITEMS.length + ' items';
+  if (F.region) info += ' &middot; referring to <code>' + esc(F.region.side.toUpperCase() + ' ' + F.region.ref) + '</code> <span class="chip" id="clr-region">show all</span>';
+  document.getElementById('listinfo').innerHTML = info;
+  const cr = document.getElementById('clr-region'); if (cr) cr.onclick = () => { F.region = null; renderList(); };
+  if (selected) { const c = list.querySelector('.card[data-id="' + CSS.escape(selected) + '"]'); if (c) c.classList.add('sel'); }
+}
+document.getElementById('list').addEventListener('click', e => {
+  const chip = e.target.closest('.rchip');
+  if (chip && chip.dataset.ref) { e.stopPropagation(); goto(chip.dataset.side, chip.dataset.ref); return; }
+  if (e.target.closest('a')) return;
+  const card = e.target.closest('.card'); if (!card) return;
+  if (selected === card.dataset.id && e.target.closest('.t')) { card.classList.toggle('sel'); return; }
+  select(card.dataset.id);
+});
+
+/* ---------- summary ---------- */
+function syncCounts(){ document.querySelectorAll('.count').forEach(c => c.classList.toggle('off', F.recon.size > 0 && !F.recon.has(c.dataset.r))); }
+function buildSummary(){
+  const S = DATA.summary || {}, C = DATA.compared;
+  const cnt = {}; RECON.forEach(r => cnt[r] = 0); ITEMS.forEach(i => cnt[i.reconcilability]++);
+  let h = '<h2>Summary</h2><div class="counts">' + RECON.map(r => '<div class="count ' + r + '" data-r="' + r + '" title="Click to filter"><b>' + cnt[r] + '</b><span>' + RLABEL[r] + '</span></div>').join('') + '</div>';
+  h += '<h3>Headline unreconcilables</h3><ul class="headline">' + ITEMS.filter(i => i.reconcilability === 'unreconcilable').sort(sortItems).map(i => '<li><span class="linkitem" data-item="' + esc(i.id) + '">' + esc(i.title) + '</span></li>').join('') + '</ul>';
+  if (S.version_assessment_html) h += '<h3>FHIR R5 vs R4: what it implies</h3>' + S.version_assessment_html;
+  if ((S.key_modelling||[]).length) h += '<h3>Key modelling differences</h3><ul class="headline">' + S.key_modelling.map(k => '<li>' + k.html + ' ' + (k.items||[]).map(id => '<span class="linkitem" data-item="' + esc(id) + '">[' + esc(id) + ']</span>').join(' ') + '</li>').join('') + '</ul>';
+  if (Object.keys(SCEN).length) h += '<h3>HL7 Europe IG scenarios</h3><table class="kindtable">' + Object.keys(SCEN).map(k => '<tr><td><span class="linkitem" data-scen="' + k + '">' + k + ' &middot; ' + esc(SCEN[k]) + '</span></td><td class="n">' + ITEMS.filter(i => (i.eu_scenarios||[]).includes(+k)).length + '</td></tr>').join('') + '</table><p class="note">From the TNT-approved HL7 Europe AI Transparency IG proposal (05.10.2026), which targets FHIR R4 and R5. Click a scenario to filter.</p>';
+  h += '<h3>By category</h3><table class="kindtable">' + KINDS.map(k => { const its = ITEMS.filter(i => i.kind === k); if (!its.length) return ''; const bar = RECON.map(r => { const n = its.filter(i => i.reconcilability === r).length; return n ? '<i style="width:' + (100 * n / its.length) + '%;background:var(' + ({"unreconcilable":"--r-unrec","reconcilable-with-change":"--r-change","at-only-derivable":"--r-derive","equivalent":"--r-equiv"})[r] + ')" title="' + n + ' ' + RLABEL[r] + '"></i>' : ''; }).join(''); return '<tr><td>' + esc(k) + '</td><td class="n">' + its.length + '</td><td style="width:45%"><div class="bar">' + bar + '</div></td></tr>'; }).join('') + '</table>';
+  h += '<h3>How to read this</h3><dl class="legend">' +
+    '<dt style="color:var(--r-unrec)">unreconcilable</dt><dd>Cannot be expressed as AT profile deriving from (EU deriving from) Intl: different FHIR base version, different base resource for the same concept, or a code/element that has no counterpart.</dd>' +
+    '<dt style="color:var(--r-change)">reconcilable with change</dt><dd>Works once one side changes; the item says which side and how.</dd>' +
+    '<dt style="color:var(--r-derive)">AT-only, derivable</dt><dd>An AT addition that can sit on top of Intl/EU as a further constraint or extension.</dd>' +
+    '<dt style="color:var(--r-equiv)">equivalent</dt><dd>Same concept and compatible, or Intl-only content AT would inherit unchanged through derivation.</dd>' +
+    '<dt>Navigation</dt><dd>Click a card to highlight and scroll to all of its regions on both sides; the chips jump to one region each. Coloured bars on the left/right mark regions with diff items: hover to see them, click to list only those. Dashed boxes and badges mark content that only exists on one side. <span class="kbd">j</span>/<span class="kbd">k</span> next/previous item, <span class="kbd">Esc</span> clears.</dd></dl>';
+  h += '<h3>Compared</h3><table class="kv">' + ['at','intl'].map(s => { const g = C.sides[s]; return '<tr><th>' + SIDELABEL[s] + '</th><td><code>' + esc(g.commit) + '</code> ' + esc(g.commit_date || '') + (g.dirty ? ' <b>(dirty)</b>' : '') + '<br>' + esc(g.ig_id) + ' ' + esc(g.ig_version) + ', FHIR ' + esc(g.fhirVersion) + '</td></tr>'; }).join('') + '<tr><th>built</th><td>' + esc(C.generated) + ', SUSHI ' + esc(C.sushi) + '</td></tr></table>';
+  document.getElementById('summary').innerHTML = h;
+  document.querySelectorAll('.count').forEach(c => c.onclick = () => { const r = c.dataset.r; F.recon.has(r) ? F.recon.delete(r) : F.recon.add(r); document.querySelectorAll('#filters .chip').forEach(ch => { if (RECON.includes(ch.dataset.v)) ch.classList.toggle('on', F.recon.has(ch.dataset.v)); }); syncCounts(); renderList(); });
+  document.getElementById('summary').addEventListener('click', e => { const l = e.target.closest('.linkitem'); if (l && l.dataset.scen) { const v = l.dataset.scen; F.scen.has(v) ? F.scen.delete(v) : F.scen.add(v); document.querySelectorAll('#filters .chip').forEach(ch => { if (ch.textContent.startsWith(v + ' ') && SCEN[ch.dataset.v]) ch.classList.toggle('on', F.scen.has(v)); }); renderList(); return; } if (l) { F.region = null; renderList(); select(l.dataset.item); } });
+  const ban = [];
+  (C.problems||[]).forEach(p => ban.push('<div class="banner err"><b>Unresolved ref:</b> ' + esc(p) + '</div>'));
+  (C.staleness||[]).forEach(p => ban.push('<div class="banner warn"><b>Re-review:</b> ' + esc(p) + '</div>'));
+  document.getElementById('banners').innerHTML = ban.join('');
+  document.getElementById('topmeta').innerHTML = 'AT <code>' + esc(C.sides.at.commit_short) + '</code> FHIR ' + esc(C.sides.at.fhirVersion) + ' &middot; Intl <code>' + esc(C.sides.intl.commit_short) + '</code> FHIR ' + esc(C.sides.intl.fhirVersion) + ' &middot; ' + ITEMS.length + ' items &middot; built ' + esc(C.generated);
+}
+
+/* ---------- region interaction (reverse direction) ---------- */
+const tip = document.getElementById('tip');
+function regionOf(target){ const el = target.closest('.region.has-diff'); return el && el.closest('.side') ? el : null; }
+function sideOf(el){ return el.closest('.side').dataset.side; }
+let hoverEl = null;
+function onOver(e){
+  const el = regionOf(e.target);
+  if (el === hoverEl) { if (el) placeTip(e); return; }
+  if (hoverEl) { document.querySelectorAll('.card.peer').forEach(c => c.classList.remove('peer')); }
+  hoverEl = el;
+  if (!el) { tip.style.display = 'none'; return; }
+  const ids = REFITEMS[sideOf(el)].get(el.dataset.ref) || [];
+  tip.innerHTML = '<div style="color:#aab4c0;font-size:11px">' + esc(el.dataset.ref) + '</div>' + ids.map(id => '<div class="ti" data-recon="' + BY[id].reconcilability + '">' + esc(BY[id].title) + '</div>').join('') + '<div class="hint">click to show ' + (ids.length > 1 ? 'these ' + ids.length + ' items' : 'this item') + '</div>';
+  tip.style.display = 'block'; placeTip(e);
+  ids.forEach(id => { const c = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]'); if (c) c.classList.add('peer'); });
+}
+function placeTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
+function onRegionClick(el){
+  const s = sideOf(el), ids = REFITEMS[s].get(el.dataset.ref) || [];
+  F.region = {side:s, ref:el.dataset.ref, ids:ids};
+  renderList();
+  const keep = selected && ids.includes(selected);
+  select(keep ? selected : ids.slice().sort((a, b) => sortItems(BY[a], BY[b]))[0], true);
+  // scroll only the other side + the middle lane, keep the clicked side where it is
+  const it = BY[selected], o = s === 'at' ? 'intl' : 'at';
+  const first = (it[SIDEKEY[o]]||[]).map(r => REG[o].get(r)).find(Boolean);
+  if (first) scrollToRegion(first, false);
+  document.getElementById('mid-body').scrollTop = document.getElementById('listinfo').offsetTop - 8;
+}
+for (const s of ['at','intl']) {
+  body[s].addEventListener('mousemove', onOver);
+  body[s].addEventListener('mouseleave', () => { tip.style.display = 'none'; hoverEl = null; document.querySelectorAll('.card.peer').forEach(c => c.classList.remove('peer')); });
+  body[s].addEventListener('click', e => {
+    const a = e.target.closest('a[data-goto]');
+    if (a) { e.preventDefault(); goto(s, a.dataset.goto); return; }
+    if (e.target.closest('summary') && !regionOf(e.target)) return;
+    if (e.target.closest('a[href]')) return;
+    const el = regionOf(e.target); if (!el) return;
+    if (e.target.closest('summary')) e.preventDefault();
+    onRegionClick(el);
+  });
+}
+document.querySelectorAll('[data-toc]').forEach(b => b.onclick = () => document.getElementById(b.dataset.toc).classList.toggle('open'));
+document.querySelectorAll('.toc').forEach(t => t.addEventListener('click', e => { const a = e.target.closest('a[data-goto]'); if (!a) return; e.preventDefault(); goto(t.id === 'toc-at' ? 'at' : 'intl', a.dataset.goto); t.classList.remove('open'); }));
+document.getElementById('btn-summary').onclick = () => { const s = document.getElementById('summary'); s.style.display = s.style.display === 'none' ? '' : 'none'; };
+function clearAll(){ F.scen.clear(); F.recon.clear(); F.kind.clear(); F.severity.clear(); F.presence.clear(); F.level.clear(); F.unc = false; F.q = ''; F.region = null; selected = null; clearHL(); document.querySelectorAll('#filters .chip.on').forEach(c => c.classList.remove('on')); const q = $('#q'); if (q) q.value = ''; syncCounts(); renderList(); history.replaceState(null, '', location.pathname); }
+document.getElementById('btn-clear').onclick = clearAll;
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') { if (e.key === 'Escape') e.target.blur(); return; }
+  if (e.key === 'Escape') { clearAll(); document.querySelectorAll('.toc.open').forEach(t => t.classList.remove('open')); }
+  if (e.key === 'j' || e.key === 'k') { const cards = [...document.querySelectorAll('#list .card')]; if (!cards.length) return; let i = cards.findIndex(c => c.dataset.id === selected); i = e.key === 'j' ? Math.min(cards.length - 1, i + 1) : Math.max(0, i - 1); select(cards[i].dataset.id); }
+});
+
+/* ---------- init ---------- */
+decorate(); buildFilters(); buildSummary(); renderList();
+const m = location.hash.match(/item=([^&]+)/);
+if (m && BY[decodeURIComponent(m[1])]) { const id = decodeURIComponent(m[1]); select(id, true); window.addEventListener('load', () => setTimeout(() => select(id), 30)); }
+
+/* ---------- self test (open index.html#selftest) ---------- */
+if (SELFTEST) {
+  const res = {ok:true, items:ITEMS.length, refs:0, unresolved:[], selectFail:[], scrollFail:[], reverseFail:[], gotoFail:[], regions:{}, unmatchedArticles:{}, oneSidedRegions:{}};
+  ITEMS.forEach(it => { for (const s of ['at','intl']) (it[SIDEKEY[s]]||[]).forEach(r => { res.refs++; if (!REG[s].get(r)) res.unresolved.push(it.id + ' ' + s + ' ' + r); }); });
+  ITEMS.forEach(it => {
+    F.region = null; renderList(); select(it.id);
+    for (const s of ['at','intl']) {
+      const want = (it[SIDEKEY[s]]||[]).filter(r => REG[s].get(r));
+      const got = want.filter(r => REG[s].get(r).classList.contains('hl'));
+      if (got.length !== want.length) res.selectFail.push(it.id + ' ' + s);
+      if (want.length) { const el = REG[s].get(want[0]), col = body[s].getBoundingClientRect(), r = el.getBoundingClientRect();
+        if (!(r.bottom > col.top && r.top < col.bottom)) res.scrollFail.push(it.id + ' ' + s + ' ' + want[0]); }
+    }
+    if (!document.querySelector('.card.sel[data-id="' + CSS.escape(it.id) + '"]')) res.selectFail.push(it.id + ' card');
+  });
+  for (const s of ['at','intl']) {
+    res.regions[s] = body[s].querySelectorAll('.region.has-diff').length;
+    res.unmatchedArticles[s] = [...body[s].querySelectorAll('article.unmatched')].map(a => a.dataset.ref);
+    res.oneSidedRegions[s] = body[s].querySelectorAll('.only:not(.weak)').length;
+    body[s].querySelectorAll('.region.has-diff').forEach(el => {
+      onRegionClick(el);
+      const ids = REFITEMS[s].get(el.dataset.ref);
+      const shown = [...document.querySelectorAll('#list .card')].map(c => c.dataset.id);
+      if (ids.some(id => !shown.includes(id)) || shown.length !== ids.length || !ids.includes(selected)) res.reverseFail.push(s + ' ' + el.dataset.ref);
+    });
+  }
+  // in-page links (data-goto) inside both sides
+  for (const s of ['at','intl']) body[s].querySelectorAll('a[data-goto]').forEach(a => { if (!REG[s].get(a.dataset.goto)) res.gotoFail.push(s + ' ' + a.dataset.goto); });
+  res.gotoFail = [...new Set(res.gotoFail)];
+  res.ok = !res.unresolved.length && !res.selectFail.length && !res.scrollFail.length && !res.reverseFail.length && !res.gotoFail.length;
+  clearAll();
+  document.getElementById('selftest-result').textContent = JSON.stringify(res);
+}
+})();
+</script>
+</body>
+</html>
