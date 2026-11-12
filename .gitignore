@@ -3,3 +3,5 @@ igs/
 __pycache__/
 compared.json
 index.html
+eu-full.json
+diffs.json

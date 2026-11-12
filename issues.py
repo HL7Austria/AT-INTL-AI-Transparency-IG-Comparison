@@ -26,7 +26,22 @@ LABELS = {  # name: (colour, description)
     "severity:high": ("b60205", ""),
     "severity:medium": ("fbca04", ""),
     "severity:low": ("c5def5", ""),
+    "eu-verdict": ("0052cc", "Where an AT IG part belongs under the chain Intl -> EU -> AT (EU placement tab of the page)"),
+    "placement:eu": ("1f6feb", "Move into the HL7 Europe IG"),
+    "placement:eu-intl": ("8250df", "Belongs in HL7 International; EU carries it until Intl has it"),
+    "placement:at": ("b60205", "Stays in the Austrian IG"),
+    "placement:drop": ("6e7781", "Drop or replace with existing Intl/core content"),
+    "placement:open": ("fbca04", "Open question for the working group"),
+    "confidence:high": ("0e8a16", ""),
+    "confidence:medium": ("fbca04", ""),
+    "confidence:low": ("d93f0b", ""),
 }
+VERDICT_LABEL = "eu-verdict"
+PLACEMENTS = ["eu", "eu-intl", "at", "drop", "open"]
+CONFIDENCE = ["high", "medium", "low"]
+V_SECTIONS = [("rationale", "Rationale"), ("changes", "What should change"), ("guess", "Unverified reading")]
+V_META_KEYS = ["id", "at_refs", "diffs", "confluence", "scenarios", "articles", "eu_target"]
+V_META_RE = re.compile(r"<!--\s*eu-verdict\b[^\n]*\n(.*?)\n\s*-->", re.S)
 
 SECTIONS = [("explanation", "What differs"), ("change", "What should change"),
             ("uncertainty", "Uncertain"), ("evidence", "Evidence")]
@@ -91,6 +106,56 @@ def parse_issue(issue):
     return item
 
 
+# ---------------------------------------------------------------- EU verdicts
+
+def verdict_body(v):
+    out = []
+    for key, head in V_SECTIONS:
+        val = v.get(key)
+        if not val:
+            continue
+        out.append(f"### {head}")
+        out.append("\n".join(f"- {c}" for c in val) if key == "changes" else val.strip())
+        out.append("")
+    meta = {k: v[k] for k in V_META_KEYS if k in v}
+    out.append("<!-- eu-verdict: data for the comparison page (AT IG anchors, related differences). "
+               "Edit the text above freely; change this block only to re-point the verdict.")
+    out.append(json.dumps(meta, ensure_ascii=False, indent=1))
+    out.append("-->")
+    return "\n".join(out) + "\n"
+
+
+def verdict_labels(v):
+    return [VERDICT_LABEL, f"placement:{v['verdict']}", f"confidence:{v['confidence']}"]
+
+
+def verdict_title(v):
+    return f"[{v['id']}] {v['title']}"
+
+
+def parse_verdict(issue):
+    body = (issue.get("body") or "").replace("\r\n", "\n")
+    m = V_META_RE.search(body)
+    if not m:
+        raise ValueError(f"issue #{issue['number']}: no eu-verdict data block")
+    v = json.loads(m.group(1))
+    parts = re.split(r"^###[ \t]+(.+?)[ \t]*$", body[:m.start()], flags=re.M)
+    by_head = {h.strip().lower(): t.strip() for h, t in zip(parts[1::2], parts[2::2])}
+    for key, head in V_SECTIONS:
+        val = by_head.get(head.lower())
+        if val:
+            v[key] = [re.sub(r"^[-*]\s+", "", l).strip() for l in val.splitlines() if l.strip()] if key == "changes" else val
+    v.setdefault("changes", [])
+    labels = [l["name"] for l in issue.get("labels", [])]
+    pl = [l.split(":", 1)[1] for l in labels if l.startswith("placement:")]
+    cf = [l.split(":", 1)[1] for l in labels if l.startswith("confidence:")]
+    v["verdict"] = pl[0] if pl else "open"
+    v["confidence"] = cf[0] if cf else "medium"
+    v["title"] = re.sub(r"^\[V\d+\]\s*", "", issue["title"])
+    v["issue"] = {"number": issue["number"], "url": issue["html_url"], "state": issue["state"], "comments": []}
+    return v
+
+
 # ---------------------------------------------------------------- GitHub API
 
 def token():
@@ -129,26 +194,34 @@ def api(path, accept="application/vnd.github+json", method="GET", data=None):
 
 def fetch_items(repo):
     """All comparison issues of `repo` (open and closed) with their comment threads, as items."""
-    issues = api(f"/repos/{repo}/issues?labels={ITEM_LABEL}&state=all&per_page=100",
-                 accept="application/vnd.github.full+json")
-    items, problems = {}, []
+    items, verdicts, problems = fetch_all(repo)
+    return items, problems
+
+
+def fetch_all(repo):
+    """(diff items, EU verdicts, problems) from the issues of `repo`, each with its comment thread."""
+    issues = api(f"/repos/{repo}/issues?state=all&per_page=100", accept="application/vnd.github.full+json")
+    items, verdicts, problems = {}, {}, []
     for iss in issues:
         if "pull_request" in iss:
             continue
+        labels = {l["name"] for l in iss.get("labels", [])}
         try:
-            it = parse_issue(iss)
+            if ITEM_LABEL in labels:
+                items[iss["number"]] = parse_issue(iss)
+            elif VERDICT_LABEL in labels:
+                verdicts[iss["number"]] = parse_verdict(iss)
         except (ValueError, json.JSONDecodeError) as e:
             problems.append(str(e))
-            continue
-        items[iss["number"]] = it
     comments = api(f"/repos/{repo}/issues/comments?per_page=100&sort=created&direction=asc",
                    accept="application/vnd.github.full+json")
     for c in comments:
         n = int(c["issue_url"].rsplit("/", 1)[1])
-        if n in items:
-            items[n]["issue"]["comments"].append({
+        target = items.get(n) or verdicts.get(n)
+        if target:
+            target["issue"]["comments"].append({
                 "author": c["user"]["login"], "avatar": c["user"]["avatar_url"] + "&s=48",
                 "url": c["html_url"], "created": c["created_at"], "updated": c["updated_at"],
                 "body_html": c.get("body_html", ""), "body": c.get("body", ""),
             })
-    return [items[n] for n in sorted(items)], problems
+    return [items[n] for n in sorted(items)], [verdicts[n] for n in sorted(verdicts)], problems

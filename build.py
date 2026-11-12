@@ -850,18 +850,42 @@ def md_paras(text):
     return "".join(f"<p>{render_inline(p)}</p>" for p in text.split("\n\n"))
 
 
+def load_eu(models, verdicts, diff_ids, problems):
+    """EU placement tab: eu.json (summary data) + the verdicts (from the issues, or eu-full.json offline)."""
+    if not (HERE / "eu.json").exists():
+        return None
+    eu = json.loads((HERE / "eu.json").read_text())
+    if verdicts is None:
+        full = HERE / "eu-full.json"
+        verdicts = json.loads(full.read_text())["verdicts"] if full.exists() else []
+    for v in verdicts:
+        for r in v.get("at_refs", []):
+            if r not in models["at"].anchors:
+                problems.append(f'{v["id"]}: at_refs "{r}" does not resolve in the AT render')
+        for d in v.get("diffs", []):
+            if d not in diff_ids:
+                problems.append(f'{v["id"]}: unknown diff "{d}"')
+        v["rationale_html"] = md_paras(v.get("rationale", ""))
+        v["changes_html"] = [render_inline(c) for c in v.get("changes", [])]
+        if v.get("guess"):
+            v["guess_html"] = render_inline(v["guess"])
+    eu["verdicts"] = verdicts
+    return eu
+
+
 def load_diffs(models, issues_repo=None):
     if issues_repo:
         sys.path.insert(0, str(HERE))
         import issues
         data = json.loads((HERE / "comparison.json").read_text())
-        data["items"], problems = issues.fetch_items(issues_repo)
+        data["items"], verdicts, problems = issues.fetch_all(issues_repo)
         data["repo"] = issues_repo
-        print(f"[issues] {issues_repo}: {len(data['items'])} items, "
-              f"{sum(len(i['issue']['comments']) for i in data['items'])} comments")
+        print(f"[issues] {issues_repo}: {len(data['items'])} items, {len(verdicts)} EU verdicts, "
+              f"{sum(len(i['issue']['comments']) for i in data['items'] + verdicts)} comments")
     else:
         data = json.loads((HERE / "diffs.json").read_text())
-        problems = []
+        problems, verdicts = [], None
+    data["eu"] = load_eu(models, verdicts, {i.get("id") for i in data["items"]}, problems)
     seen = set()
     for it in data["items"]:
         for f in REQUIRED:
@@ -942,7 +966,7 @@ def build(args):
     (out / "compared.json").write_text(json.dumps(compared, indent=2) + "\n")
 
     payload = {"items": diffs["items"], "summary": diffs.get("summary", {}), "compared": compared,
-               "repo": diffs.get("repo"), "auth": diffs.get("auth") if diffs.get("repo") else None,
+               "repo": diffs.get("repo"), "auth": diffs.get("auth") if diffs.get("repo") else None, "eu": diffs.get("eu"),
                "kinds": KINDS, "recon": RECON}
     page = (HERE / "template.html").read_text(encoding="utf-8")
     for k, m in models.items():

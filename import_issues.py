@@ -4,6 +4,7 @@
     python3 import_issues.py ../ai-transparency-reports/ig-comparison/diffs.json            # dry run
     python3 import_issues.py <diffs.json> --execute --only fhir-version                      # one item
     python3 import_issues.py <diffs.json> --execute                                          # the rest
+    python3 import_issues.py eu-full.json --eu [--execute] [--only V01]                      # EU verdicts
 
 Idempotent: items whose id already exists as a comparison issue are skipped. Labels are
 created/updated first. Uses GITHUB_TOKEN / GH_TOKEN or `gh auth token`.
@@ -27,13 +28,17 @@ def main():
     ap.add_argument("--repo", default=REPO)
     ap.add_argument("--execute", action="store_true", help="actually create labels and issues (default: dry run)")
     ap.add_argument("--only", action="append", help="item id(s) to import")
+    ap.add_argument("--eu", action="store_true", help="import EU verdicts (eu-full.json from eu-public/sanitize.py)")
     a = ap.parse_args()
 
-    items = json.loads(Path(a.diffs).read_text())["items"]
+    items = json.loads(Path(a.diffs).read_text())["verdicts" if a.eu else "items"]
     if a.only:
         items = [i for i in items if i["id"] in a.only]
-    existing, _ = I.fetch_items(a.repo)
-    have = {i["id"]: i["issue"]["number"] for i in existing}
+    ex_items, ex_verdicts, _ = I.fetch_all(a.repo)
+    have = {i["id"]: i["issue"]["number"] for i in (ex_verdicts if a.eu else ex_items)}
+    title = I.verdict_title if a.eu else (lambda it: it["title"])
+    body = I.verdict_body if a.eu else I.issue_body
+    labels_of = I.verdict_labels if a.eu else I.issue_labels
     todo = [i for i in items if i["id"] not in have]
     print(f"{len(items)} items selected, {len(items) - len(todo)} already imported, {len(todo)} to create in {a.repo}")
 
@@ -44,14 +49,14 @@ def main():
                 I.api(f"/repos/{a.repo}/labels", method="POST", data={"name": name, "color": color, "description": desc})
                 print(f"  label + {name}")
     for it in todo:
-        labels = I.issue_labels(it)
+        labels = labels_of(it)
         print(f"  {'create' if a.execute else 'would create'}: [{it['id']}] {it['title'][:70]}  {labels}")
         if not a.execute:
             continue
         for attempt in range(4):
             try:
                 r = I.api(f"/repos/{a.repo}/issues", method="POST",
-                          data={"title": it["title"], "body": I.issue_body(it), "labels": labels})
+                          data={"title": title(it), "body": body(it), "labels": labels})
                 print(f"    -> #{r['number']} {r['html_url']}")
                 break
             except urllib.error.HTTPError as e:  # secondary rate limit on bursts of issue creation

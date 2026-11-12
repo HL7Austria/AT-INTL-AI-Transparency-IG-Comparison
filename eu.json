@@ -1,0 +1,1316 @@
+{
+  "analysed_at": "2026-10-27",
+  "analysed_against": {
+    "at": "2fcd7f30d8e1109a5b177a9f45ceba54ee489f9d",
+    "intl": "6d0a39f97a4040cc193ca1ab95fc57b52506cdb0"
+  },
+  "verdict_kinds": {
+    "eu": {
+      "label": "→ EU",
+      "text": "Move into the HL7 Europe IG, as-is or adapted."
+    },
+    "eu-intl": {
+      "label": "→ EU (via Intl)",
+      "text": "Jurisdiction-neutral content that really belongs in HL7 International; the EU IG carries it until Intl has it."
+    },
+    "at": {
+      "label": "stays AT",
+      "text": "Genuinely national: ELGA/Austrian infrastructure, national terminology, national legal specifics, or AT IG metadata."
+    },
+    "drop": {
+      "label": "drop/replace",
+      "text": "Superseded by existing HL7 International (or core/THO/IHE) content; replace rather than carry forward."
+    },
+    "open": {
+      "label": "open question",
+      "text": "Needs a WG decision before it can be placed."
+    }
+  },
+  "eu_articles": {
+    "AIA-50": {
+      "label": "AI Act Art. 50",
+      "text": "transparency obligations (AI-generated content)",
+      "conf": "C-art50"
+    },
+    "AIA-11": {
+      "label": "AI Act Art. 11, 13, 47–49",
+      "text": "service description and capabilities, conformity, CE, registration",
+      "conf": "C-art11"
+    },
+    "AIA-10": {
+      "label": "AI Act Art. 10",
+      "text": "training data and data governance",
+      "conf": "C-art10"
+    },
+    "AIA-12": {
+      "label": "AI Act Art. 12, 13",
+      "text": "provenance and traceability incl. log integrity",
+      "conf": "C-art12"
+    },
+    "AIA-14": {
+      "label": "AI Act Art. 14",
+      "text": "human oversight",
+      "conf": "C-art14"
+    },
+    "AIA-9": {
+      "label": "AI Act Art. 9, 15",
+      "text": "performance monitoring and drift",
+      "conf": "C-art9"
+    },
+    "AIA-86": {
+      "label": "AI Act Art. 86",
+      "text": "right to explanation",
+      "conf": "C-art86"
+    },
+    "GDPR": {
+      "label": "GDPR Art. 6, 9, 13, 22",
+      "text": "legal basis, health-data exception, information, automated decisions",
+      "conf": "C-gdpr"
+    },
+    "EHDS": {
+      "label": "EHDS Art. 51–52, 71",
+      "text": "secondary use: data permits, data categories, opt-out",
+      "conf": "C-ehds"
+    }
+  },
+  "article_requirements": {
+    "AIA-50": [],
+    "AIA-11": [
+      "SYS-01",
+      "SYS-02",
+      "SYS-03a",
+      "SYS-03b",
+      "SYS-04",
+      "SYS-05",
+      "SYS-06",
+      "SYS-07",
+      "SYS-11",
+      "USE-01",
+      "USE-02",
+      "USE-03",
+      "QUAL-01",
+      "QUAL-04",
+      "RISK-01"
+    ],
+    "AIA-10": [
+      "QUAL-02a"
+    ],
+    "AIA-12": [
+      "SYS-10",
+      "LAW-08"
+    ],
+    "AIA-14": [
+      "HL-01",
+      "HL-02",
+      "HL-03",
+      "HL-04",
+      "HL-05"
+    ],
+    "AIA-9": [
+      "SYS-03c",
+      "RISK-01"
+    ],
+    "AIA-86": [
+      "LAW-07"
+    ],
+    "GDPR": [
+      "SYS-02",
+      "SYS-08",
+      "USE-03",
+      "LAW-01a",
+      "LAW-01b",
+      "LAW-02",
+      "LAW-04",
+      "LAW-06"
+    ],
+    "EHDS": [
+      "QUAL-02b",
+      "LAW-03",
+      "LAW-05"
+    ],
+    "_outside_pss_list": [
+      "SYS-09",
+      "SYS-12",
+      "USE-04",
+      "QUAL-03"
+    ]
+  },
+  "article_requirements_note": "Mapping of the 38 AT requirement IDs (requirements.md / doc/documentation_matrices.xlsx, column 'Requirement (Law / Source)') to the PSS candidate article groups. A requirement can sit in two groups (e.g. RISK-01 cites Art. 9(2) and 13(3)(b)). '_outside_pss_list' are AT requirements whose legal source is not among the PSS candidate articles: SYS-09 GDPR Art. 35, SYS-12 AI Act Art. 17, USE-04 GDPR Art. 5(1), QUAL-03 EHDS Art. 78. LAW-04 also cites GDPR Art. 44, SYS-10 also EHDS Annex II.",
+  "eu_scenarios": {
+    "1": "identifying AI involvement in clinical information",
+    "2": "retrieving info about an AI-enabled system",
+    "3": "referencing external documentation",
+    "4": "documenting human oversight",
+    "5": "explaining an AI-supported decision to the patient",
+    "6": "traceability of AI execution",
+    "7": "secondary use for AI development"
+  },
+  "confluence_refs": {
+    "C-approved": {
+      "label": "Proposal: TNT approval 05.10.2026",
+      "quote": "TNT approval: HL7 Europe TNT, 05 Oct 2026"
+    },
+    "C-fhir": {
+      "label": "Proposal: FHIR versions R4 + R5",
+      "quote": "FHIR versions: **R4 (4.0.1) and R5 (5.0.0)**; R6 to be considered"
+    },
+    "C-scope": {
+      "label": "Proposal: scope (interoperability subset only)",
+      "quote": "NOT reproducing the full AI Act technical documentation, only the subset useful for interoperability"
+    },
+    "C-art50": {
+      "label": "Scope: AI Act Art. 50",
+      "quote": "Art. 50 (transparency obligations)"
+    },
+    "C-art11": {
+      "label": "Scope: AI Act Art. 11, 13, 47–49",
+      "quote": "Art. 11, 13, 47–49 (service description/capabilities)"
+    },
+    "C-art10": {
+      "label": "Scope: AI Act Art. 10",
+      "quote": "Art. 10 (training data & data governance)"
+    },
+    "C-art12": {
+      "label": "Scope: AI Act Art. 12, 13",
+      "quote": "Art. 12, 13 (provenance & traceability incl. log integrity)"
+    },
+    "C-art14": {
+      "label": "Scope: AI Act Art. 14",
+      "quote": "Art. 14 (human oversight)"
+    },
+    "C-art9": {
+      "label": "Scope: AI Act Art. 9, 15",
+      "quote": "Art. 9, 15 (performance monitoring & drift)"
+    },
+    "C-art86": {
+      "label": "Scope: AI Act Art. 86",
+      "quote": "Art. 86 (right to explanation)"
+    },
+    "C-gdpr": {
+      "label": "Scope: GDPR Art. 6, 9, 13, 22",
+      "quote": "GDPR: Art. 6, 9, 13, 22"
+    },
+    "C-ehds": {
+      "label": "Scope: EHDS Art. 51–52, 71",
+      "quote": "EHDS secondary use: Art. 51–52, 71 (data permits, data categories, opt-out)"
+    },
+    "C-deliv": {
+      "label": "Scope: deliverables incl. logical models",
+      "quote": "where feasible logical model(s) independent of FHIR"
+    },
+    "C-artefacts": {
+      "label": "Scope: artefacts to investigate",
+      "quote": "AI-generated content flags, Model Cards, System Cards, agent guardrails (harness rules), AI Transparency Statements"
+    },
+    "C-link": {
+      "label": "Scope: reference, do not duplicate",
+      "quote": "link/reference external documentation rather than duplicate it"
+    },
+    "C-clin": {
+      "label": "Scope: clinical + non-clinical, cross-border",
+      "quote": "Clinical + non-clinical (CDS, diagnostic/predictive, generative AI, admin, research); jurisdictional + cross-border (EHDS/EEHRxF)"
+    },
+    "C-align": {
+      "label": "Scope: align with Intl, EHDS/EEHRxF, SDOs",
+      "quote": "Align with HL7 Intl, EHDS/EEHRxF, other SDOs"
+    },
+    "C-system": {
+      "label": "Long description: system info + use in context",
+      "quote": "info about the AI system/model (identity, version, intended purpose, capabilities, limitations, population, provider, performance)"
+    },
+    "C-trace": {
+      "label": "Long description: requirement-to-implementation traceability",
+      "quote": "**traceability from legal requirements to implementation** (each requirement → data element/artifact/control)"
+    },
+    "C-guardrail": {
+      "label": "Long description: guardrails for agent harnesses",
+      "quote": "with a focus on basic guardrails for AI agent harnesses"
+    },
+    "C-buildon": {
+      "label": "Long description: build on Intl, common EU baseline",
+      "quote": "build on and align with HL7 Intl AI Transparency on FHIR; a common European baseline"
+    },
+    "C-noncompliance": {
+      "label": "Long description: does not determine compliance",
+      "quote": "does NOT determine legal compliance/safety"
+    },
+    "C-source-at": {
+      "label": "Content sources: AT IG with 38 requirements",
+      "quote": "HL7 Austria Trust AI Transparency IG (FHIR R5 prototype) with its requirements analysis: 38 documentation requirements"
+    },
+    "C-sc1": {
+      "label": "Scenario 1",
+      "quote": "1 identifying AI involvement in clinical information"
+    },
+    "C-sc2": {
+      "label": "Scenario 2",
+      "quote": "2 retrieving info about an AI-enabled system"
+    },
+    "C-sc3": {
+      "label": "Scenario 3",
+      "quote": "3 referencing external documentation"
+    },
+    "C-sc4": {
+      "label": "Scenario 4",
+      "quote": "4 documenting human oversight (validate/override/correct, reviewer + role/AI training, rationale, correction linked to the original output)"
+    },
+    "C-sc5": {
+      "label": "Scenario 5",
+      "quote": "5 explaining an AI-supported decision to the patient (informed? explanation requested/provided?)"
+    },
+    "C-sc6": {
+      "label": "Scenario 6",
+      "quote": "6 traceability of AI execution (when, which system/version, inputs/outputs, provenance incl. legal/usage context, integrity of records for post-hoc review/post-market monitoring)"
+    },
+    "C-sc7": {
+      "label": "Scenario 7",
+      "quote": "7 secondary use for AI development (data categories, purpose, data permit reference, in the Model Card)"
+    },
+    "C-rel": {
+      "label": "IG relationships: Intl, HL7 Europe Base/Core",
+      "quote": "IG relationships: HL7 Intl AI Transparency; HL7 Europe Base and Core"
+    },
+    "C-timeline": {
+      "label": "Timeline: STU ballot mid 2027",
+      "quote": "first STU ballot mid 2027"
+    },
+    "M-mature": {
+      "label": "Brainstorming page: AT IG mature",
+      "quote": "calls the AT IG \"very comprehensive and mature\""
+    },
+    "M-method": {
+      "label": "Brainstorming page: top-down vs bottom-up",
+      "quote": "Methodology: **top-down** (regulatory analysis → technical requirements → logical models → FHIR) vs **bottom-up**"
+    },
+    "M-observ": {
+      "label": "Brainstorming page: observability and traceability",
+      "quote": "**observability and traceability** (as in the AT IG)"
+    },
+    "M-sc7": {
+      "label": "Brainstorming page: expand scenario 7",
+      "quote": "Scenario 7 (research): expand it"
+    },
+    "M-metadata": {
+      "label": "Brainstorming page: no overlap with model-card standards",
+      "quote": "FHIR should NOT overlap with other model-card/datasheet standards"
+    },
+    "M-healthdcat": {
+      "label": "Brainstorming page: HealthDCAT-AP",
+      "quote": "explore mapping **HealthDCAT-AP**"
+    },
+    "M-incremental": {
+      "label": "Brainstorming page: incremental, EHDS articles",
+      "quote": "proceed incrementally by priority; apply the AT IG's classification criteria; include the EHDS secondary-use articles"
+    },
+    "M-focus": {
+      "label": "Brainstorming page: UC3/4/5 vs Art. 13/14/86",
+      "quote": "UC3 → AI Act Art. 13, UC4 → Art. 14, UC5 → Art. 86"
+    }
+  },
+  "skeleton": {
+    "intro": "Proposed content of the HL7 Europe AI Transparency IG, built from the verdicts above. 'Parent' is the R4 parent; the R5 package mirrors it (see R4/R5 strategy). Names follow the Intl-mirroring pattern proposed in V54.",
+    "groups": [
+      {
+        "name": "Profiles",
+        "items": [
+          {
+            "name": "AIDeviceEu",
+            "base": "Device",
+            "parent": "Intl AIDevice",
+            "verdicts": [
+              "V01",
+              "V02",
+              "V03",
+              "V04",
+              "V05"
+            ],
+            "scenarios": [
+              2,
+              3
+            ],
+            "articles": [
+              "AIA-11"
+            ],
+            "note": "type + AIKind from Intl; EU regulatory identifiers conditional on high-risk; Intl modelCardDescription."
+          },
+          {
+            "name": "AIModelCardEu",
+            "base": "DocumentReference",
+            "parent": "Intl AIModelCard",
+            "verdicts": [
+              "V09",
+              "V10",
+              "V11",
+              "V12"
+            ],
+            "scenarios": [
+              3
+            ],
+            "articles": [
+              "AIA-11"
+            ],
+            "note": "Intl type code; format category; technical documentation/IfU referenced, not reproduced. Structured metrics pending V13."
+          },
+          {
+            "name": "AIOrganizationEu",
+            "base": "Organization",
+            "parent": "HL7 Europe Base Organization",
+            "verdicts": [
+              "V07",
+              "V08"
+            ],
+            "scenarios": [
+              2
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": "DPO and AI incident contacts."
+          },
+          {
+            "name": "AIProvenanceEu",
+            "base": "Provenance",
+            "parent": "Intl AIProvenance",
+            "verdicts": [
+              "V24",
+              "V25",
+              "V26",
+              "V27",
+              "V28",
+              "V30"
+            ],
+            "scenarios": [
+              1,
+              4,
+              6,
+              7
+            ],
+            "articles": [
+              "AIA-12",
+              "GDPR",
+              "EHDS"
+            ],
+            "note": "Intl agent/entity slicing; execution period; GDPR legal basis; EHDS usage context; Art. 22 flag."
+          },
+          {
+            "name": "AIExecutionAuditEventEu",
+            "base": "AuditEvent",
+            "parent": "IHE BALP (R4)",
+            "verdicts": [
+              "V31",
+              "V32"
+            ],
+            "scenarios": [
+              6
+            ],
+            "articles": [
+              "AIA-12"
+            ],
+            "note": "Art. 12 execution log with integrity signature; human agents allowed."
+          },
+          {
+            "name": "AIHumanOversightEu",
+            "base": "ArtifactAssessment (R5) / Basic + artifactassessment-content (R4)",
+            "parent": "core",
+            "verdicts": [
+              "V33",
+              "V34"
+            ],
+            "scenarios": [
+              4
+            ],
+            "articles": [
+              "AIA-14"
+            ],
+            "note": "Layered on top of the Intl verifier agent; rationale required on override."
+          },
+          {
+            "name": "AIOversightPractitionerRoleEu",
+            "base": "PractitionerRole",
+            "parent": "HL7 Europe Base PractitionerRole",
+            "verdicts": [
+              "V35",
+              "V36"
+            ],
+            "scenarios": [
+              4
+            ],
+            "articles": [
+              "AIA-14"
+            ],
+            "note": "Training as Practitioner.qualification pending V36."
+          },
+          {
+            "name": "AIPatientExplanationEu",
+            "base": "Communication (+ CommunicationRequest/Task for the request)",
+            "parent": "core",
+            "verdicts": [
+              "V37",
+              "V38"
+            ],
+            "scenarios": [
+              5
+            ],
+            "articles": [
+              "AIA-86",
+              "GDPR"
+            ],
+            "note": "Art. 86 explanation; category code replaces the info flag."
+          }
+        ]
+      },
+      {
+        "name": "Conformance rules (no profile)",
+        "items": [
+          {
+            "name": "AIAST label obligation (AI Act Art. 50)",
+            "base": "meta.security / DS4P inline labels",
+            "parent": "Intl labelling rules",
+            "verdicts": [
+              "V18",
+              "V19",
+              "V21"
+            ],
+            "scenarios": [
+              1
+            ],
+            "articles": [
+              "AIA-50"
+            ],
+            "note": "Every AI-influenced resource SHALL carry v3-ObservationValue#AIAST; element-level labels and AIconfidence inherited from Intl."
+          },
+          {
+            "name": "Actors and obligations",
+            "base": "page",
+            "parent": "Intl creator/consumer actors",
+            "verdicts": [
+              "V49"
+            ],
+            "scenarios": [
+              1,
+              6
+            ],
+            "articles": [],
+            "note": "When the EU records (Provenance legal context, AuditEvent, oversight) become mandatory, e.g. for high-risk systems."
+          }
+        ]
+      },
+      {
+        "name": "Extensions",
+        "items": [
+          {
+            "name": "conformity-declaration (Art. 47)",
+            "base": "Device",
+            "parent": "",
+            "verdicts": [
+              "V03"
+            ],
+            "scenarios": [
+              2,
+              3
+            ],
+            "articles": [
+              "AIA-11"
+            ],
+            "note": ""
+          },
+          {
+            "name": "third-country-data-transfer",
+            "base": "Device or deployment",
+            "parent": "",
+            "verdicts": [
+              "V06"
+            ],
+            "scenarios": [
+              2,
+              6
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": "context to be reconsidered"
+          },
+          {
+            "name": "dpia-reference",
+            "base": "Organization or deployment",
+            "parent": "",
+            "verdicts": [
+              "V08"
+            ],
+            "scenarios": [
+              2
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": "if Art. 35 is in scope"
+          },
+          {
+            "name": "usage-category, secondary-use-purpose, data-permit",
+            "base": "Provenance",
+            "parent": "",
+            "verdicts": [
+              "V28"
+            ],
+            "scenarios": [
+              6,
+              7
+            ],
+            "articles": [
+              "EHDS"
+            ],
+            "note": "permit as reference once EHDS IGs define it"
+          },
+          {
+            "name": "automated-decision (Art. 22)",
+            "base": "Provenance",
+            "parent": "",
+            "verdicts": [
+              "V30"
+            ],
+            "scenarios": [
+              4,
+              6
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": ""
+          },
+          {
+            "name": "case-indication (interim, via Intl)",
+            "base": "Provenance",
+            "parent": "",
+            "verdicts": [
+              "V29"
+            ],
+            "scenarios": [
+              6
+            ],
+            "articles": [],
+            "note": ""
+          },
+          {
+            "name": "log-integrity",
+            "base": "AuditEvent",
+            "parent": "",
+            "verdicts": [
+              "V32"
+            ],
+            "scenarios": [
+              6
+            ],
+            "articles": [
+              "AIA-12"
+            ],
+            "note": "unless an existing extension fits"
+          },
+          {
+            "name": "training-data (phase 2)",
+            "base": "DocumentReference",
+            "parent": "",
+            "verdicts": [
+              "V14"
+            ],
+            "scenarios": [
+              7
+            ],
+            "articles": [
+              "AIA-10",
+              "EHDS"
+            ],
+            "note": "HealthDCAT-AP references"
+          },
+          {
+            "name": "Intl extensions reused unchanged",
+            "base": "various",
+            "parent": "Intl",
+            "verdicts": [
+              "V05",
+              "V23"
+            ],
+            "scenarios": [
+              1,
+              2,
+              3
+            ],
+            "articles": [],
+            "note": "modelCardDescription, AIKind, AIconfidence, inline labels"
+          }
+        ]
+      },
+      {
+        "name": "Terminology",
+        "items": [
+          {
+            "name": "GDPR Art. 6 / Art. 9 CodeSystems + ValueSets",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V39"
+            ],
+            "scenarios": [
+              6
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": "complete Art. 9(2)(a)–(j)"
+          },
+          {
+            "name": "EHDS usage category, data categories, secondary-use purposes",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V40"
+            ],
+            "scenarios": [
+              6,
+              7
+            ],
+            "articles": [
+              "EHDS"
+            ],
+            "note": "or bind to HealthDCAT-AP lists"
+          },
+          {
+            "name": "EU device property codes (CE mark, notified body) + EU AI database identifier system",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V03",
+              "V04"
+            ],
+            "scenarios": [
+              2
+            ],
+            "articles": [
+              "AIA-11"
+            ],
+            "note": ""
+          },
+          {
+            "name": "Contact purpose (DPO, AI incident)",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V07"
+            ],
+            "scenarios": [
+              2
+            ],
+            "articles": [
+              "GDPR"
+            ],
+            "note": "or THO"
+          },
+          {
+            "name": "Interim codes awaiting Intl/THO: involvement grades, oversight actions, use-level indication, intended purpose/target population",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V19",
+              "V34",
+              "V29",
+              "V04"
+            ],
+            "scenarios": [
+              1,
+              2,
+              4,
+              6
+            ],
+            "articles": [
+              "AIA-50",
+              "AIA-14"
+            ],
+            "note": "retire once Intl/THO publish them"
+          }
+        ]
+      },
+      {
+        "name": "Pages and models",
+        "items": [
+          {
+            "name": "Requirements traceability + logical models (from the AT matrix, extended)",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V43",
+              "V44"
+            ],
+            "scenarios": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ],
+            "articles": [
+              "AIA-11",
+              "AIA-12",
+              "AIA-14",
+              "AIA-86",
+              "GDPR",
+              "EHDS"
+            ],
+            "note": "computable as Requirements resources"
+          },
+          {
+            "name": "Relationship to Intl + R4/R5 mapping page",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V45",
+              "V53"
+            ],
+            "scenarios": [],
+            "articles": [],
+            "note": "states the relationship to Intl explicitly"
+          },
+          {
+            "name": "Examples for scenarios 1–6",
+            "base": "",
+            "parent": "",
+            "verdicts": [
+              "V48",
+              "V55"
+            ],
+            "scenarios": [
+              1,
+              4,
+              5,
+              6
+            ],
+            "articles": [],
+            "note": ""
+          }
+        ]
+      }
+    ]
+  },
+  "thin_at": [
+    {
+      "text": "IG identity under an HL7 Austria namespace (canonical, `hl7.at.fhir.*`-style package id, jurisdiction AT, CC0), FHIR R5, depending on the EU R5 package.",
+      "verdicts": [
+        "V52",
+        "V53"
+      ]
+    },
+    {
+      "text": "National binding of the EHDS Art. 71 opt-out: the Austrian situational opt-out and its ELGA implementation. This is the only genuinely national content found.",
+      "verdicts": [
+        "V42"
+      ]
+    },
+    {
+      "text": "National bindings that do not exist yet but would land here: Austrian identifiers and HL7 Austria Core profiles for Patient/Practitioner/Organization, Austrian specialty codes for the reviewer, national legal references (none are in the current IG). An R5 HL7 Austria Core exists (`hl7.at.fhir.core.r5` 2.0.0, packages.fhir.org, checked 27.10.2026), so the R5 AT layer can depend on it.",
+      "verdicts": [
+        "V35",
+        "V52"
+      ]
+    },
+    {
+      "text": "Optionally, the specialised Trust_AIObservation as an AT use-case profile deriving from EU, if the WG keeps the EU normative core resource-agnostic.",
+      "verdicts": [
+        "V20"
+      ]
+    },
+    {
+      "text": "Authors and IP statements of the AT IG.",
+      "verdicts": [
+        "V50"
+      ]
+    }
+  ],
+  "r4r5": {
+    "summary": "The approved PSS publishes the EU IG for R4 (4.0.1) and R5 (5.0.0), so the R4/R5 gap moves from the AT–Intl comparison into the EU IG. EU R4 derives from Intl 1.0.0 directly; EU R5 mirrors Intl under documented mappings until Intl publishes an R5 edition, which HL7 Europe should request; AT R5 derives from EU R5.",
+    "points": [
+      {
+        "text": "**EU R4 package**: `Parent:` the Intl profiles (AIDevice, AIModelCard, AIProvenance) and HL7 Europe Base R4; AuditEvent on IHE BALP.",
+        "diffs": [
+          "fhir-version",
+          "no-derivation-link"
+        ]
+      },
+      {
+        "text": "**EU R5 package**: same artefacts, mirroring Intl constraints (Device.type slice, AIKind, agent/entity slicing) under a published mapping table; derived from HL7 Europe Base R5.",
+        "diffs": [
+          "fhir-version",
+          "device-type"
+        ]
+      },
+      {
+        "text": "**R5-only constructs used by AT** need an R4 representation: ArtifactAssessment → `Basic` + `artifactassessment-content` (hl7.fhir.uv.extensions.r4); `Provenance.authorization` → a `Provenance.reason` slice; `Device.conformsTo` and string `Device.property` values → cross-version extensions; AuditEvent `occurred[x]` → `period`.",
+        "diffs": [
+          "oversight",
+          "prov-reason-authorization",
+          "device-property-r4"
+        ]
+      },
+      {
+        "text": "**R4-only constructs used by Intl** need an R5 representation, which Intl should own: `entity.role = derivation` → `instantiates`; `reason[AIReason]` → an `authorization` slice; `deviceName` → `name`.",
+        "diffs": [
+          "entity-role-r5",
+          "prov-reason-authorization",
+          "device-identity"
+        ]
+      },
+      {
+        "text": "**Jira asks to Intl (as HL7 Europe)**: an R5 edition; the entity-role mapping; graded involvement codes if Art. 50 needs them; a model-card format code for AI Act technical documentation; the `reason` search parameter. Intl's next ballot cycle (Dec–Jan) is the window to file them.",
+        "diffs": [
+          "maturity",
+          "graded-involvement",
+          "mc-content"
+        ]
+      },
+      {
+        "text": "**R6**: the PSS says 'to be considered'. Designing R5 first keeps the step to R6 small; no R6 work is proposed before the STU ballot (mid 2027).",
+        "diffs": []
+      }
+    ]
+  },
+  "gaps": [
+    {
+      "id": "G01",
+      "title": "AI Act Art. 10 training-data governance",
+      "articles": [
+        "AIA-10"
+      ],
+      "scenarios": [
+        7
+      ],
+      "at": "partial: AITrainingData with a narrative provenance string, EHDS category, permit Identifier, quality codes (V14, V15)",
+      "intl": "none (model card is opaque)",
+      "proposal": "Phase 2: reference dataset descriptions (HealthDCAT-AP) from the model card instead of new FHIR elements.",
+      "confluence": [
+        "C-art10",
+        "M-sc7",
+        "M-healthdcat"
+      ]
+    },
+    {
+      "id": "G02",
+      "title": "EHDS secondary use: data permits, HealthDCAT-AP mapping, Art. 71 opt-out",
+      "articles": [
+        "EHDS"
+      ],
+      "scenarios": [
+        7
+      ],
+      "at": "permit as Identifier only; opt-out not modelled (LAW-05)",
+      "intl": "none",
+      "proposal": "Work with the EHDS IG teams: permit as a reference, opt-out via Consent/Permission, a FHIR → HealthDCAT-AP mapping as the brainstorming page suggests.",
+      "confluence": [
+        "C-ehds",
+        "M-healthdcat",
+        "M-incremental"
+      ]
+    },
+    {
+      "id": "G03",
+      "title": "Agent guardrails / harness rules",
+      "articles": [
+        "AIA-50",
+        "AIA-12"
+      ],
+      "scenarios": [
+        6
+      ],
+      "at": "none",
+      "intl": "none (Intl points to AI industry standards via the Model-Card)",
+      "proposal": "Data-flow only: an EU DocumentReference type for 'harness rule set' referenced from the Device, and `Provenance.policy` naming the rule set in force at execution. No harness engineering.",
+      "confluence": [
+        "C-guardrail",
+        "C-artefacts"
+      ]
+    },
+    {
+      "id": "G04",
+      "title": "Performance monitoring and drift (AI Act Art. 9, 15; post-market monitoring)",
+      "articles": [
+        "AIA-9"
+      ],
+      "scenarios": [
+        6
+      ],
+      "at": "explicitly out of scope (Art. 15 non-goal); SYS-03c partial",
+      "intl": "none",
+      "proposal": "WG decision (V47). If in: a minimal periodic performance record (e.g. Observation or MeasureReport about the Device) linked to the model card metrics.",
+      "confluence": [
+        "C-art9",
+        "C-sc6"
+      ]
+    },
+    {
+      "id": "G05",
+      "title": "AI Act Art. 50 transparency obligations as a legal anchor",
+      "articles": [
+        "AIA-50"
+      ],
+      "scenarios": [
+        1,
+        5
+      ],
+      "at": "labels exist but have no requirement ID ('TODO: find the law'); no requirement in the matrix cites Art. 50",
+      "intl": "AIAST label (jurisdiction-neutral, no legal mapping)",
+      "proposal": "Add Art. 50 requirements to the matrix top-down; map them to the AIAST obligation and to patient information that a person is interacting with AI.",
+      "confluence": [
+        "C-art50",
+        "C-artefacts"
+      ]
+    },
+    {
+      "id": "G06",
+      "title": "System Cards and AI Transparency Statements",
+      "articles": [
+        "AIA-11",
+        "AIA-50"
+      ],
+      "scenarios": [
+        2,
+        3
+      ],
+      "at": "none",
+      "intl": "model card only",
+      "proposal": "Treat as further DocumentReference formats (category codes at Intl), not new profiles.",
+      "confluence": [
+        "C-artefacts",
+        "C-link"
+      ]
+    },
+    {
+      "id": "G07",
+      "title": "Generative AI: prompts and narrative source",
+      "articles": [
+        "AIA-12"
+      ],
+      "scenarios": [
+        1,
+        6
+      ],
+      "at": "none",
+      "intl": "AIInputPrompt; narrative-source mapping under discussion at Intl",
+      "proposal": "Inherit Intl's prompt profile; follow the Intl narrative-source work.",
+      "confluence": [
+        "C-clin"
+      ]
+    },
+    {
+      "id": "G08",
+      "title": "Non-clinical / administrative AI and cross-border EEHRxF",
+      "articles": [],
+      "scenarios": [
+        1,
+        6
+      ],
+      "at": "clinical use cases only",
+      "intl": "prior-authorisation and appointment examples",
+      "proposal": "Check that AIAST labels and Provenance survive in the EEHRxF documents (Patient Summary, lab report, discharge report).",
+      "confluence": [
+        "C-clin",
+        "C-align"
+      ]
+    },
+    {
+      "id": "G09",
+      "title": "Coded limitations, contraindications and risks",
+      "articles": [
+        "AIA-11",
+        "AIA-9"
+      ],
+      "scenarios": [
+        2,
+        3
+      ],
+      "at": "partial (narrative only: USE-02, RISK-02)",
+      "intl": "none",
+      "proposal": "Keep narrative in the referenced model card unless a use case needs computable contraindications.",
+      "confluence": [
+        "C-system",
+        "C-scope"
+      ]
+    },
+    {
+      "id": "G10",
+      "title": "AI as part of a device (composite systems)",
+      "articles": [
+        "AIA-11"
+      ],
+      "scenarios": [
+        2
+      ],
+      "at": "none",
+      "intl": "open ticket FHIR-54757 (as reported)",
+      "proposal": "Follow Intl; document the parent/sub-Device pattern in EU guidance.",
+      "confluence": [
+        "C-system"
+      ]
+    },
+    {
+      "id": "G11",
+      "title": "Computable requirement-to-implementation traceability",
+      "articles": [],
+      "scenarios": [],
+      "at": "matrix as Markdown; Requirements-fromNarrative.json is an empty Requirements resource",
+      "intl": "none",
+      "proposal": "Publish the EU matrix as Requirements resources (R5) linked to profile elements.",
+      "confluence": [
+        "C-trace",
+        "C-deliv"
+      ]
+    }
+  ],
+  "methodology": {
+    "answer": "The AT 38-requirement matrix is a top-down artefact, so the EU work does not have to choose between top-down and bottom-up: steps 1–3 of the brainstorming page's sequence exist for AT's scope, and the open work is to extend them for the PSS articles the matrix does not cover, then reconcile bottom-up against Intl.",
+    "evidence": [
+      "Every one of the 38 rows in `doc/documentation_matrices.xlsx` (sheet 'Requirment-Matrix') starts from a legal source (column 'Requirement (Law/Source)': AI Act, GDPR, EHDS article) and a metadata field, with no FHIR terms.",
+      "The three logical-model sheets refine them into 57 attributes with multiplicity and rationale (36 static, 12 AI output, 9 clinical decision), also FHIR-free. That is the brainstorming page's 'regulatory analysis → technical requirements → logical models' chain.",
+      "The FHIR mapping and status columns were added afterwards: requirements.md says so ('The *FHIR Mapping* and *Status* columns were added'), in commit 4893c9f of 01.10.2026.",
+      "Bottom-up residue exists and is visible: TrustAIData, the involvement codes, the Observation.interpretation flag and clinicalValidationStatus have no requirement ID ('TODO: find the law', '^requirements = \"TODO\"'); requirements.md lists them as 'beyond the matrices'.",
+      "Caveat: git cannot prove the order: the matrix and the first FSH were committed together on 24.04.2026 (85ad46a). The top-down reading rests on the matrix's structure and the requirements page, not on history.",
+      "Source selection is the weakness, not the method: no row cites AI Act Art. 50, Art. 72/73, the Art. 9/15 monitoring side (Art. 15 only as SYS-03c, partial) or agent guardrails, and four rows cite articles outside the PSS list (GDPR Art. 5, 35, AI Act Art. 17, EHDS Art. 78)."
+    ],
+    "proposal": "Adopt the AT matrix as the EU's top-down seed (applying the AT classification criteria, as the brainstorming page suggests), extend it top-down for G01–G05, then use the AT ↔ Intl comparison as the bottom-up reconciliation with Intl. The verdicts here are that reconciliation for the AT side."
+  },
+  "decisions": [
+    {
+      "id": "D1",
+      "title": "How the EU IG relates to Intl: derive (EU R4 from Intl 1.0.0) and route jurisdiction-neutral content to Intl, or a standalone EU IG?",
+      "verdicts": [
+        "V01",
+        "V09",
+        "V24",
+        "V45",
+        "V51"
+      ],
+      "recommendation": "Derive, and route the six '→ EU (via Intl)' items to Intl via Jira; publish a one-page relationship statement before the 25.11 alignment meetup."
+    },
+    {
+      "id": "D2",
+      "title": "R4/R5 mechanics: how R5-only (ArtifactAssessment, authorization, Device.property/conformsTo) and R4-only (entity role derivation, reason) constructs are mapped, and whether HL7 Europe formally requests an Intl R5 edition",
+      "verdicts": [
+        "V53",
+        "V25",
+        "V27",
+        "V33",
+        "V04"
+      ],
+      "recommendation": "Adopt the mapping list in the R4/R5 strategy; file the Intl Jira items in the Dec–Jan ballot cycle."
+    },
+    {
+      "id": "D3",
+      "title": "Human oversight: ArtifactAssessment layered on the Intl verifier agent, or Provenance only?",
+      "verdicts": [
+        "V33",
+        "V34",
+        "V36"
+      ],
+      "recommendation": "Layer both (Intl verifier agent always, EU ArtifactAssessment for Art. 14 outcome and rationale).",
+      "note": "Bears on the open Intl design question about review rounds."
+    },
+    {
+      "id": "D4",
+      "title": "Scope and phasing: scenarios 1–6 first, scenario 7 (training data, EHDS secondary use) later; agent guardrails and Art. 9/15 drift in or out",
+      "verdicts": [
+        "V14",
+        "V28",
+        "V41",
+        "V47"
+      ],
+      "recommendation": "Phase 1 = scenarios 1–6 from AT + Intl; phase 2 = scenario 7 with the EHDS IG teams; guardrails as data flow only (G03); decide Art. 15 explicitly (V47)."
+    },
+    {
+      "id": "D5",
+      "title": "Model cards: which EU facts are FHIR elements (EU regulatory identifiers, legal context) and which stay in the referenced card (metrics, validation status, retention)",
+      "verdicts": [
+        "V09",
+        "V13",
+        "V14",
+        "V16",
+        "V17"
+      ],
+      "recommendation": "FHIR elements only for what an EU consumer must query (CE/EU database/conformity, legal context); metrics and validation status in the referenced model card, mapped to CHAI/HF; training data via HealthDCAT-AP."
+    }
+  ],
+  "open_questions": [
+    {
+      "id": "Q01",
+      "title": "Are agent guardrails / harness rules in scope of the EU IG?",
+      "effect": "Not answered by AT content: neither IG has anything on agent guardrails. Proposed as a coverage gap with a data-flow-only option (a referenced rule set plus `Provenance.policy` at execution time), which covers 'basic guardrails' without turning the IG into harness engineering.",
+      "verdicts": [],
+      "gaps": [
+        "G03"
+      ]
+    },
+    {
+      "id": "Q02",
+      "title": "Relationship and dependency between the EU IG and the UV (Intl) AI Transparency IG",
+      "effect": "Answered structurally: EU derives from Intl (R4) and mirrors it (R5); everything jurisdiction-neutral found in AT is marked '→ EU (via Intl)' and routed to Intl via Jira, a 'general to Intl, European to EU' split applied artefact by artefact.",
+      "verdicts": [
+        "V04",
+        "V19",
+        "V22",
+        "V29",
+        "V34",
+        "V45",
+        "V51"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q03",
+      "title": "Drain of community resources vs the EHDS-related FHIR IGs",
+      "effect": "Reduced: the EU IG reuses Intl, HL7 Europe Base, IHE BALP and the EHDS IG/HealthDCAT-AP vocabularies instead of new models; the EHDS-heavy parts (permits, opt-out, training data) are deferred to a phase that is done with the EHDS IG teams.",
+      "verdicts": [
+        "V28",
+        "V40",
+        "V41"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q04",
+      "title": "Separate IG or something else?",
+      "effect": "Partly answered: the data show that a separate EU IG is needed for EU-law content that Intl will not carry (CE/EU database/conformity, GDPR/EHDS legal context, Art. 14/86 records), but it is a thin layer over Intl: of the 55 verdicts, 6 send jurisdiction-neutral content on to Intl and 9 replace AT content with existing Intl/core content.",
+      "verdicts": [
+        "V03",
+        "V27",
+        "V33",
+        "V37"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q05",
+      "title": "Scope phasing: point-of-care first vs training data / EHDS secondary use",
+      "effect": "The verdicts support phasing the normative content: scenarios 1–6 can be built now from AT + Intl; scenario 7 (training data, permits, opt-out, data quality) has only thin AT content and depends on HealthDCAT-AP/EHDS, so it is phase 2, where the HealthDCAT-AP expansion can then fill it.",
+      "verdicts": [
+        "V14",
+        "V15",
+        "V28",
+        "V41"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q06",
+      "title": "Methodology: top-down (regulation first) vs bottom-up (from the AT/Intl IGs)",
+      "effect": "Answered in the methodology note: the AT matrix is already a top-down artefact for 38 requirements; the WG extends it top-down for the PSS articles it lacks and reconciles bottom-up against Intl.",
+      "verdicts": [
+        "V43"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q07",
+      "title": "Model cards: reuse external standards vs define them in FHIR",
+      "effect": "Answered for the AT artefacts: the model-card link extension and type code are replaced by Intl's; the card itself is referenced. Structured metrics (V13) and clinical validation status (V17) remain open; training data goes to HealthDCAT-AP references.",
+      "verdicts": [
+        "V05",
+        "V09",
+        "V10",
+        "V13",
+        "V14",
+        "V17"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q08",
+      "title": "FHIR version: R4 vs R5 (and R6)",
+      "effect": "Already answered by the PSS (R4 + R5); this analysis turns it into a concrete mapping list and keeps AT on R5.",
+      "verdicts": [
+        "V53"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q09",
+      "title": "Modelling differences between the AT IG and the Intl IG",
+      "effect": "Every modelling difference between the two IGs is placed: label (V18/V19), element-level label (inherited from Intl), human review (V33), AuditEvent (V31), EU extensions (V27–V30), EHDS use cases (V28), prompts (inherited from Intl via V25).",
+      "verdicts": [
+        "V18",
+        "V19",
+        "V25",
+        "V31",
+        "V33"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q10",
+      "title": "AT IG documentation and quality gaps",
+      "effect": "The documentation gaps become EU work items: the rationale column of the matrix and the per-profile intros carry over (V43); TrustAIData is dropped (V18); DocumentReference.type aligned (V10); the separate Observation profile becomes a WG decision (V20).",
+      "verdicts": [
+        "V10",
+        "V18",
+        "V20",
+        "V43",
+        "V46"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q11",
+      "title": "Open Intl design questions: narrative source, review rounds, Provenance vs inline",
+      "effect": "Not resolved here, but V33 depends on it: if Intl models review rounds, the EU oversight assessment should reference them rather than duplicate them.",
+      "verdicts": [
+        "V24",
+        "V33",
+        "V34"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q12",
+      "title": "AI as part of devices (FHIR-54757)",
+      "effect": "Affects V01 only as guidance (composite Device with AI sub-Devices); no AT content.",
+      "verdicts": [
+        "V01"
+      ],
+      "gaps": [
+        "G10"
+      ]
+    },
+    {
+      "id": "Q14",
+      "title": "AT participation in the Intl IG ballot",
+      "effect": "The Dec–Jan Intl ballot is the window for the Jira items listed in the R4/R5 strategy; this time HL7 Europe should register.",
+      "verdicts": [
+        "V19",
+        "V25"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q15",
+      "title": "Consent in primary use and EHDS Art. 71 opt-out",
+      "effect": "Splits LAW-05: the opt-out concept goes to EU (V41), the Austrian situational opt-out stays AT (V42).",
+      "verdicts": [
+        "V41",
+        "V42"
+      ],
+      "gaps": []
+    },
+    {
+      "id": "Q16",
+      "title": "Primary format: FHIR only, or other formats too?",
+      "effect": "Consistent: the AT matrix's logical attributes are FHIR-independent and seed the EU logical models.",
+      "verdicts": [
+        "V43"
+      ],
+      "gaps": []
+    }
+  ],
+  "caveats": [
+    "`Requirements-fromNarrative.json` in the AT repo is an empty, publisher-generated Requirements resource (no statements). The 38 requirements were read from `doc/documentation_matrices.xlsx` and `input/pagecontent/requirements.md` instead.",
+    "Legal readings marked 'guess' (Art. 73 for the incident contact, Art. 10(3) vs EHDS Art. 78, Art. 71 member-state discretion, EHDS article numbering) were not checked against the regulation texts.",
+    "HL7 Europe Base package ids and profile names, IHE BALP for R5, and the exact cross-version extensions for R4 were not checked against published packages; only `artifactassessment-content` (context Basic, hl7.fhir.uv.extensions.r4 5.3.0) was verified locally.",
+    "The EU IG repository (github.com/hl7-eu/aitransparency) did not exist on 27.10.2026, so nothing here is checked against EU IG content.",
+    "No EU participant has a recorded position on human oversight modelling or the R4/R5 mechanics; D2/D3 positions are AT/Intl only.",
+    "The ~/.fhir cache holds `fhir.ig.eu.aitransparency#dev` from 29.09.2026: it is an earlier local build of the AT IG under an 'eu' canonical, not an HL7 Europe IG."
+  ]
+}

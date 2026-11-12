@@ -88,6 +88,22 @@ blockquote{margin:6px 0;padding:2px 10px;border-left:3px solid #c3cbd6;color:#44
 .cmt-h img{width:20px;height:20px;border-radius:50%}
 .cmt-b{padding:4px 10px;font-size:13px;overflow-x:auto}.cmt-b p{margin:4px 0}.cmt-b img{max-width:100%}
 .muted{color:var(--muted);font-size:12px}
+.modes{display:flex;gap:0}
+.modes .mode{font-size:12px;padding:2px 10px;border:1px solid var(--line);background:#fff;cursor:pointer}
+.modes .mode:first-child{border-radius:4px 0 0 4px}.modes .mode:last-child{border-radius:0 4px 4px 0;border-left:0}
+.modes .mode.on{background:#1d232b;color:#fff;border-color:#1d232b}
+:root{--pl-eu:#1f6feb;--pl-eu-intl:#8250df;--pl-at:#b60205;--pl-drop:#6e7781;--pl-open:#bf8700}
+.card.vcard[data-pl="eu"]{--rc:var(--pl-eu)}.card.vcard[data-pl="eu-intl"]{--rc:var(--pl-eu-intl)}.card.vcard[data-pl="at"]{--rc:var(--pl-at)}
+.card.vcard[data-pl="drop"]{--rc:var(--pl-drop)}.card.vcard[data-pl="open"]{--rc:var(--pl-open)}
+.b.pl{background:var(--rc);color:#fff;font-weight:600}
+.vid{font:11px ui-monospace,monospace;color:var(--muted)}
+.counts.c5{grid-template-columns:repeat(5,1fr)}
+.count.pl-eu{background:var(--pl-eu)}.count.pl-eu-intl{background:var(--pl-eu-intl)}.count.pl-at{background:var(--pl-at)}.count.pl-drop{background:var(--pl-drop)}.count.pl-open{background:var(--pl-open)}
+.linkv{cursor:pointer;color:#1f5fa8;text-decoration:underline dotted;font:11px ui-monospace,monospace}
+.rchip.dchip{background:#fff7e6}
+#eu-summary details{margin:4px 0}#eu-summary summary{cursor:pointer;font-weight:600;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+#eu-summary .q{margin:6px 0;padding-left:8px;border-left:3px solid var(--line)}
+#eu-summary table{border-collapse:collapse;font-size:12px;width:100%}#eu-summary td,#eu-summary th{border-bottom:1px solid var(--soft);padding:2px 4px;vertical-align:top;text-align:left}
 #gh-auth{display:flex;align-items:center;gap:6px;font-size:12px;color:#c9d1db}
 #gh-auth img{width:20px;height:20px;border-radius:50%}
 #gh-auth a{color:#c9d1db}
@@ -217,15 +233,23 @@ section.region.unmatched-sec{border-left:2px dashed #c3cbd6;padding-left:6px}
     <div class="body side" id="body-at" data-side="at">%%AT_BODY%%</div>
   </div>
   <div class="col" id="col-mid">
-    <div class="colhead"><span class="tag">Diff</span><span class="grow">Differences under the chain Intl &rarr; EU &rarr; AT</span><button id="btn-summary">Summary</button></div>
+    <div class="colhead"><span class="modes" id="modes"><button class="mode on" data-mode="diff" title="Differences between the AT and the Intl IG">AT &harr; Intl</button><button class="mode" data-mode="eu" title="Where each part of the AT IG belongs: HL7 Europe, Intl, AT, drop or open">AT &rarr; EU</button></span><span class="grow"></span><button id="btn-summary">Summary</button></div>
     <div class="body" id="mid-body">
       <div id="banners"></div>
-      <div class="panel" id="summary"></div>
-      <div class="panel">
-        <div class="filters" id="filters"></div>
+      <div id="diff-view">
+        <div class="panel" id="summary"></div>
+        <div class="panel">
+          <div class="filters" id="filters"></div>
+        </div>
+        <div class="listinfo" id="listinfo"></div>
+        <div id="list"></div>
       </div>
-      <div class="listinfo" id="listinfo"></div>
-      <div id="list"></div>
+      <div id="eu-view" style="display:none">
+        <div class="panel" id="eu-summary"></div>
+        <div class="panel"><div class="filters" id="eu-filters"></div></div>
+        <div class="listinfo" id="eu-listinfo"></div>
+        <div id="eu-list"></div>
+      </div>
     </div>
   </div>
   <div class="col" id="col-intl">
@@ -486,6 +510,7 @@ function onOver(e){
 }
 function placeTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + 'px'; tip.style.top = y + 'px'; }
 function onRegionClick(el){
+  if (MODE === 'eu') { euRegionClick(el); return; }
   const s = sideOf(el), ids = REFITEMS[s].get(el.dataset.ref) || [];
   F.region = {side:s, ref:el.dataset.ref, ids:ids};
   renderList();
@@ -512,13 +537,14 @@ for (const s of ['at','intl']) {
 }
 document.querySelectorAll('[data-toc]').forEach(b => b.onclick = () => document.getElementById(b.dataset.toc).classList.toggle('open'));
 document.querySelectorAll('.toc').forEach(t => t.addEventListener('click', e => { const a = e.target.closest('a[data-goto]'); if (!a) return; e.preventDefault(); goto(t.id === 'toc-at' ? 'at' : 'intl', a.dataset.goto); t.classList.remove('open'); }));
-document.getElementById('btn-summary').onclick = () => { const s = document.getElementById('summary'); s.style.display = s.style.display === 'none' ? '' : 'none'; };
-function clearAll(){ F.scen.clear(); F.recon.clear(); F.kind.clear(); F.severity.clear(); F.presence.clear(); F.level.clear(); F.unc = false; F.q = ''; F.region = null; selected = null; clearHL(); document.querySelectorAll('#filters .chip.on').forEach(c => c.classList.remove('on')); const q = $('#q'); if (q) q.value = ''; syncCounts(); renderList(); history.replaceState(null, '', location.pathname); }
+document.getElementById('btn-summary').onclick = () => { const s = document.getElementById(MODE === 'eu' ? 'eu-summary' : 'summary'); s.style.display = s.style.display === 'none' ? '' : 'none'; };
+function clearAll(){
+  if (MODE === 'eu') { EF.pl.clear(); EF.conf.clear(); EF.scen.clear(); EF.q = ''; EF.ref = null; selected = null; clearHL(); document.querySelectorAll('#eu-filters .chip.on').forEach(c => c.classList.remove('on')); const q = $('#eu-q'); if (q) q.value = ''; renderEUList(); history.replaceState(null, '', location.pathname + '#eu'); return; } F.scen.clear(); F.recon.clear(); F.kind.clear(); F.severity.clear(); F.presence.clear(); F.level.clear(); F.unc = false; F.q = ''; F.region = null; selected = null; clearHL(); document.querySelectorAll('#filters .chip.on').forEach(c => c.classList.remove('on')); const q = $('#q'); if (q) q.value = ''; syncCounts(); renderList(); history.replaceState(null, '', location.pathname); }
 document.getElementById('btn-clear').onclick = clearAll;
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') { if (e.key === 'Escape') e.target.blur(); return; }
   if (e.key === 'Escape') { clearAll(); document.querySelectorAll('.toc.open').forEach(t => t.classList.remove('open')); }
-  if (e.key === 'j' || e.key === 'k') { const cards = [...document.querySelectorAll('#list .card')]; if (!cards.length) return; let i = cards.findIndex(c => c.dataset.id === selected); i = e.key === 'j' ? Math.min(cards.length - 1, i + 1) : Math.max(0, i - 1); select(cards[i].dataset.id); }
+  if (e.key === 'j' || e.key === 'k') { const cards = [...document.querySelectorAll(MODE === 'eu' ? '#eu-list .card' : '#list .card')]; if (!cards.length) return; let i = cards.findIndex(c => c.dataset.id === selected); i = e.key === 'j' ? Math.min(cards.length - 1, i + 1) : Math.max(0, i - 1); (MODE === 'eu' ? selectV : select)(cards[i].dataset.id); }
 });
 
 /* ---------- GitHub sign-in + comments ----------
@@ -577,7 +603,7 @@ function composerHTML(it){
 function rerenderCard(id){
   const card = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]'); if (!card) return;
   const sel = card.classList.contains('sel'), ta = card.querySelector('.composer textarea'), draft = ta ? ta.value : '';
-  card.outerHTML = cardHTML(BY[id]);
+  card.outerHTML = EBY[id] ? vcardHTML(EBY[id]) : cardHTML(BY[id]);
   const n = document.querySelector('.card[data-id="' + CSS.escape(id) + '"]');
   if (n && sel) n.classList.add('sel');
   const nt = n && n.querySelector('.composer textarea'); if (nt && draft) nt.value = draft;
@@ -585,7 +611,7 @@ function rerenderCard(id){
 function rerenderCards(){ document.querySelectorAll('#list .card').forEach(c => rerenderCard(c.dataset.id)); }
 function toComment(c){ return {author: c.user.login, avatar: c.user.avatar_url + '&s=48', url: c.html_url, created: c.created_at, updated: c.updated_at, body_html: c.body_html || '', body: c.body || ''}; }
 async function liveComments(id, force){
-  const it = BY[id]; if (!it || !it.issue || !GH.repo || SELFTEST) return;
+  const it = BY[id] || EBY[id]; if (!it || !it.issue || !GH.repo || SELFTEST) return;
   const last = GH.fetched[id] || 0; if (!force && Date.now() - last < 60000) return;
   GH.fetched[id] = Date.now();
   try {
@@ -593,12 +619,12 @@ async function liveComments(id, force){
     it.issue.comments = cs.map(toComment); rerenderCard(id);
   } catch(e) { /* rate limit or offline: keep the comments baked in at build time */ }
 }
-document.getElementById('list').addEventListener('click', async e => {
+async function onComposerClick(e){
   if (e.target.closest('.gh-signin')) { signIn(); return; }
   const btn = e.target.closest('.c-post'); if (!btn) return;
   const box = btn.closest('.composer'), ta = box.querySelector('textarea'), body = ta.value.trim();
   if (!body) { ta.focus(); return; }
-  const id = btn.closest('.card').dataset.id, it = BY[id];
+  const id = btn.closest('.card').dataset.id, it = BY[id] || EBY[id];
   btn.disabled = true; btn.textContent = 'Posting…';
   try {
     const c = await gh('/repos/' + GH.repo + '/issues/' + it.issue.number + '/comments', {method: 'POST', headers: ghHeaders({'Content-Type': 'application/json'}), body: JSON.stringify({body})});
@@ -609,7 +635,9 @@ document.getElementById('list').addEventListener('click', async e => {
     authMsg(err.status === 401 ? 'Your sign-in expired, please sign in again.' : 'Could not post the comment: ' + err.message);
     if (err.status === 401) signOut();
   }
-});
+}
+document.getElementById('list').addEventListener('click', onComposerClick);
+document.getElementById('eu-list').addEventListener('click', onComposerClick);
 async function initAuth(){
   if (!GH.auth || !GH.repo || SELFTEST) return;
   const q = new URLSearchParams(location.search);
@@ -620,7 +648,9 @@ async function initAuth(){
     history.replaceState(null, '', location.pathname + ret);
     if (!ok) authMsg('Sign-in failed (state mismatch), please try again.');
     else { try { await exchange({code: q.get('code')}); } catch(e) { authMsg('Sign-in failed: ' + e.message); } }
-    const m2 = ret.match(/item=([^&]+)/); if (m2 && BY[decodeURIComponent(m2[1])]) select(decodeURIComponent(m2[1]));
+    const m2 = ret.match(/item=([^&]+)/), m3 = ret.match(/(?:^#|&)v=([^&]+)/);
+    if (m2 && BY[decodeURIComponent(m2[1])]) select(decodeURIComponent(m2[1]));
+    else if (m3 && EBY[decodeURIComponent(m3[1])]) { setMode('eu'); selectV(decodeURIComponent(m3[1])); }
   } else if (q.get('error')) {
     history.replaceState(null, '', location.pathname + location.hash);
     authMsg('Sign-in cancelled: ' + (q.get('error_description') || q.get('error')));
@@ -639,15 +669,157 @@ async function initAuth(){
 const _selectBase = select;
 select = function(id, noscroll){ _selectBase(id, noscroll); liveComments(id); };
 
+/* ---------- EU placement tab ----------
+   55 verdicts (GitHub issues labelled eu-verdict): where each part of the AT IG belongs under the
+   chain Intl -> EU -> AT. Selecting one highlights its AT regions (left) and the Intl regions of the
+   related differences (right). */
+const EU = DATA.eu || null, EV = EU ? EU.verdicts : [], EBY = {};
+EV.forEach(v => EBY[v.id] = v);
+const PL = ['eu','eu-intl','at','drop','open'];
+const EF = {pl:new Set(), conf:new Set(), scen:new Set(), q:'', ref:null};
+let MODE = 'diff', euBuilt = false;
+function mdi(t){ return esc(t || '').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>'); }
+function plLabel(k){ return EU && EU.verdict_kinds[k] ? EU.verdict_kinds[k].label : k; }
+function vlinks(ids){ return (ids || []).map(id => EBY[id] ? '<span class="linkv" data-v="' + esc(id) + '" title="' + esc(EBY[id].title) + '">' + esc(id) + '</span>' : esc(id)).join(' '); }
+function vcardHTML(v){
+  const cs = v.issue ? v.issue.comments.length : 0;
+  return '<div class="card vcard" data-id="' + esc(v.id) + '" data-pl="' + esc(v.verdict) + '">' +
+    '<div class="t">' + (v.issue ? '<a class="inum" href="' + esc(v.issue.url) + '" target="_blank" rel="noopener" title="Open the GitHub issue">#' + v.issue.number + '</a> ' : '') +
+      '<span class="vid">' + esc(v.id) + '</span> ' + esc(v.title) +
+      (cs ? ' <span class="ccount" title="' + cs + ' comment(s)">&#128172; ' + cs + '</span>' : '') +
+      (v.issue && v.issue.state === 'closed' ? ' <span class="b closed">closed</span>' : '') + '</div>' +
+    '<div class="badges"><span class="b pl">' + esc(plLabel(v.verdict)) + '</span><span class="b">confidence: ' + esc(v.confidence) + '</span>' +
+      ((v.scenarios || []).length ? '<span class="b scen" title="HL7 Europe IG scenarios">EU sc. ' + v.scenarios.join(',') + '</span>' : '') +
+      (v.articles || []).map(a => '<span class="b" title="' + esc((EU.eu_articles[a] || {}).text || '') + '">' + esc((EU.eu_articles[a] || {}).label || a) + '</span>').join('') +
+      (v.eu_target ? '<span class="b lvl" title="Target in the EU IG">&rarr; ' + esc(v.eu_target) + '</span>' : '') +
+      (v.guess ? '<span class="b unc">unverified reading</span>' : '') + '</div>' +
+    '<div class="detail">' + (v.rationale_html || '') +
+      ((v.changes_html || []).length ? '<div class="chg"><b>What should change:</b><ul>' + v.changes_html.map(c => '<li>' + c + '</li>').join('') + '</ul></div>' : '') +
+      (v.guess_html ? '<div class="uncn"><b>Unverified reading:</b> ' + v.guess_html + '</div>' : '') +
+      '<div class="refs"><span class="side at">AT:</span>' + ((v.at_refs || []).map(r => '<span class="rchip" data-side="at" data-ref="' + esc(r) + '" title="' + esc(r) + '">' + esc(r.replace(/^(sd|cs|vs|ex|page):/, '')) + '</span>').join('') || '<span class="rchip none">no AT region</span>') + '</div>' +
+      ((v.diffs || []).length ? '<div class="refs"><span class="side">AT&harr;Intl:</span>' + v.diffs.map(d => '<span class="rchip dchip" data-diff="' + esc(d) + '" title="Open this difference: ' + esc(BY[d] ? BY[d].title : d) + '">' + esc(d) + '</span>').join('') + '</div>' : '') +
+      ((v.confluence || []).length ? '<div class="refs"><span class="side">PSS:</span>' + v.confluence.map(c => { const r = EU.confluence_refs[c] || {}; return '<span class="rchip none" title="' + esc(r.quote || '') + '">' + esc(r.label || c) + '</span>'; }).join('') + '</div>' : '') +
+      discussionHTML(v) + '</div></div>';
+}
+function vmatches(v){
+  if (EF.pl.size && !EF.pl.has(v.verdict)) return false;
+  if (EF.conf.size && !EF.conf.has(v.confidence)) return false;
+  if (EF.scen.size && !(v.scenarios || []).some(x => EF.scen.has(String(x)))) return false;
+  if (EF.ref && !(v.at_refs || []).includes(EF.ref)) return false;
+  if (EF.q) { const hay = [v.id, v.title, v.rationale, (v.changes || []).join(' '), (v.at_refs || []).join(' '), v.eu_target || ''].join(' ').toLowerCase(); if (!hay.includes(EF.q)) return false; }
+  return true;
+}
+function renderEUList(){
+  const vis = EV.filter(vmatches);
+  document.getElementById('eu-list').innerHTML = vis.map(vcardHTML).join('');
+  let info = vis.length + ' of ' + EV.length + ' verdicts';
+  if (EF.ref) info += ' &middot; on <code>AT ' + esc(EF.ref) + '</code> <span class="chip" id="eu-clr-ref">show all</span>';
+  document.getElementById('eu-listinfo').innerHTML = info;
+  const c = document.getElementById('eu-clr-ref'); if (c) c.onclick = () => { EF.ref = null; renderEUList(); };
+  if (selected && EBY[selected]) { const el = document.querySelector('#eu-list .card[data-id="' + CSS.escape(selected) + '"]'); if (el) el.classList.add('sel'); }
+}
+function euSyncCounts(){ document.querySelectorAll('#eu-summary .count').forEach(c => c.classList.toggle('off', EF.pl.size > 0 && !EF.pl.has(c.dataset.k))); }
+function euChipRow(label, key, values, fmt){
+  const row = document.createElement('div'); row.className = 'frow';
+  row.innerHTML = '<label class="fl">' + label + '</label>';
+  values.forEach(v => { const c = document.createElement('span'); c.className = 'chip'; c.textContent = fmt ? fmt(v) : v; c.dataset.v = v; c.dataset.key = key;
+    c.onclick = () => { EF[key].has(v) ? EF[key].delete(v) : EF[key].add(v); c.classList.toggle('on'); renderEUList(); euSyncCounts(); }; row.appendChild(c); });
+  return row;
+}
+function buildEUFilters(){
+  const f = document.getElementById('eu-filters');
+  f.appendChild(euChipRow('Placement', 'pl', PL, plLabel));
+  f.appendChild(euChipRow('Confidence', 'conf', ['high','medium','low']));
+  f.appendChild(euChipRow('EU scen.', 'scen', Object.keys(EU.eu_scenarios), v => v + ' ' + EU.eu_scenarios[v]));
+  const row = document.createElement('div'); row.className = 'frow';
+  row.innerHTML = '<label class="fl">Search</label><input id="eu-q" placeholder="title, text, element path...">';
+  f.appendChild(row);
+  $('#eu-q').oninput = e => { EF.q = e.target.value.toLowerCase(); renderEUList(); };
+}
+function buildEUSummary(){
+  const cnt = {}; PL.forEach(k => cnt[k] = EV.filter(v => v.verdict === k).length);
+  let h = '<h2>Where the AT IG goes under Intl &rarr; EU &rarr; AT</h2><div class="counts c5">' + PL.map(k => '<div class="count pl-' + k + '" data-k="' + k + '" title="' + esc(EU.verdict_kinds[k].text) + ' (click to filter)"><b>' + cnt[k] + '</b><span>' + esc(plLabel(k)) + '</span></div>').join('') + '</div>';
+  h += '<details open><summary>Open questions</summary>' + EU.open_questions.map(q => '<div class="q"><b>' + esc(q.title) + '</b><div>' + mdi(q.effect) + '</div>' + (q.verdicts.length ? '<div class="muted">Verdicts: ' + vlinks(q.verdicts) + '</div>' : '') + (q.gaps.length ? '<div class="muted">Gaps: ' + esc(q.gaps.join(', ')) + '</div>' : '') + '</div>').join('') + '</details>';
+  h += '<details open><summary>Decisions for the working group</summary>' + EU.decisions.map(d => '<div class="q"><b>' + esc(d.id) + ' ' + esc(d.title) + '</b><div><i>Recommendation:</i> ' + mdi(d.recommendation) + '</div>' + (d.note ? '<div class="muted">' + mdi(d.note) + '</div>' : '') + '<div class="muted">Verdicts: ' + vlinks(d.verdicts) + '</div></div>').join('') + '</details>';
+  h += '<details><summary>Gaps neither IG covers</summary>' + EU.gaps.map(g => '<div class="q"><b>' + esc(g.id) + ' ' + esc(g.title) + '</b>' + (g.articles || []).map(a => ' <span class="b">' + esc((EU.eu_articles[a] || {}).label || a) + '</span>').join('') + '<div><i>AT:</i> ' + mdi(g.at) + '</div><div><i>Intl:</i> ' + mdi(g.intl) + '</div><div><i>Proposal:</i> ' + mdi(g.proposal) + '</div></div>').join('') + '</details>';
+  h += '<details><summary>EU IG skeleton</summary><p>' + mdi(EU.skeleton.intro) + '</p>' + EU.skeleton.groups.map(g => '<h3>' + esc(g.name) + '</h3><table><tr><th>Artefact</th><th>Base</th><th>From</th><th>Verdicts</th></tr>' + g.items.map(i => '<tr><td>' + mdi(i.name) + (i.note ? '<div class="muted">' + mdi(i.note) + '</div>' : '') + '</td><td>' + mdi(i.base) + '</td><td>' + mdi(i.parent) + '</td><td>' + vlinks(i.verdicts) + '</td></tr>').join('') + '</table>').join('') + '</details>';
+  h += '<details><summary>What stays in the AT IG</summary><ul>' + EU.thin_at.map(t => '<li>' + mdi(t.text) + ' ' + vlinks(t.verdicts) + '</li>').join('') + '</ul></details>';
+  h += '<details><summary>R4 / R5 strategy</summary><p>' + mdi(EU.r4r5.summary) + '</p><ul>' + EU.r4r5.points.map(pt => '<li>' + mdi(pt.text) + (pt.diffs && pt.diffs.length ? ' ' + pt.diffs.map(d => '<span class="linkitem" data-item="' + esc(d) + '">[' + esc(d) + ']</span>').join(' ') : '') + '</li>').join('') + '</ul></details>';
+  h += '<details><summary>Methodology</summary><p>' + mdi(EU.methodology.answer) + '</p><ul>' + EU.methodology.evidence.map(e => '<li>' + mdi(e) + '</li>').join('') + '</ul><p><i>Proposal:</i> ' + mdi(EU.methodology.proposal) + '</p></details>';
+  h += '<details><summary>Caveats</summary><ul>' + EU.caveats.map(c => '<li>' + mdi(c) + '</li>').join('') + '</ul></details>';
+  h += '<p class="note">Based on the TNT-approved HL7 Europe AI Transparency IG proposal and its brainstorming page (Confluence), the AT IG and the AT &harr; Intl differences. Each verdict is a GitHub issue: comment there or below a verdict.</p>';
+  const s = document.getElementById('eu-summary'); s.innerHTML = h;
+  s.querySelectorAll('.count').forEach(c => c.onclick = () => { const k = c.dataset.k; EF.pl.has(k) ? EF.pl.delete(k) : EF.pl.add(k); document.querySelectorAll('#eu-filters .chip[data-key="pl"]').forEach(ch => ch.classList.toggle('on', EF.pl.has(ch.dataset.v))); euSyncCounts(); renderEUList(); });
+}
+function selectV(id, noscroll){
+  const v = EBY[id]; if (!v) return;
+  selected = id; clearHL();
+  document.querySelectorAll('#eu-list .card.sel').forEach(c => c.classList.remove('sel'));
+  const card = document.querySelector('#eu-list .card[data-id="' + CSS.escape(id) + '"]');
+  if (card) card.classList.add('sel');
+  const first = {at: null, intl: null};
+  (v.at_refs || []).forEach(r => { const el = REG.at.get(r); if (el) { el.classList.add('hl'); openAncestors(el); if (!first.at) first.at = el; } });
+  (v.diffs || []).forEach(d => ((BY[d] || {}).right_refs || []).forEach(r => { const el = REG.intl.get(r); if (el) { el.classList.add('hl'); openAncestors(el); if (!first.intl) first.intl = el; } }));
+  if (!noscroll) {
+    if (first.at) scrollToRegion(first.at, false);
+    if (first.intl) scrollToRegion(first.intl, false);
+    if (card) { const mb = document.getElementById('mid-body'); const t = card.getBoundingClientRect().top - mb.getBoundingClientRect().top; if (t < 0 || t > mb.clientHeight - 80) mb.scrollTop += t - 60; }
+  }
+  if (!SELFTEST) history.replaceState(null, '', '#v=' + encodeURIComponent(id));
+  liveComments(id);
+}
+function euRegionClick(el){
+  if (sideOf(el) !== 'at') return;
+  EF.ref = el.dataset.ref; renderEUList();
+  const vis = EV.filter(vmatches);
+  if (vis.length) selectV(vis.some(v => v.id === selected) ? selected : vis[0].id, true);
+  document.getElementById('mid-body').scrollTop = document.getElementById('eu-listinfo').offsetTop - 8;
+}
+function setMode(m){
+  if (m === 'eu' && !EU) return;
+  MODE = m; selected = null; clearHL();
+  document.querySelectorAll('#modes .mode').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  document.getElementById('diff-view').style.display = m === 'eu' ? 'none' : '';
+  document.getElementById('eu-view').style.display = m === 'eu' ? '' : 'none';
+  if (m === 'eu' && !euBuilt) { euBuilt = true; buildEUFilters(); buildEUSummary(); renderEUList(); }
+  if (!SELFTEST) history.replaceState(null, '', location.pathname + (m === 'eu' ? '#eu' : ''));
+}
+document.getElementById('modes').addEventListener('click', e => { const b = e.target.closest('.mode'); if (b) setMode(b.dataset.mode); });
+if (!EU) document.querySelector('#modes .mode[data-mode="eu"]').style.display = 'none';
+else document.querySelector('#modes .mode[data-mode="eu"]').innerHTML += ' (' + EV.length + ')';
+document.querySelector('#modes .mode[data-mode="diff"]').innerHTML += ' (' + ITEMS.length + ')';
+document.getElementById('eu-view').addEventListener('click', e => {
+  const lv = e.target.closest('.linkv'); if (lv) { selectV(lv.dataset.v); return; }
+  const li = e.target.closest('.linkitem'); if (li && li.dataset.item) { setMode('diff'); select(li.dataset.item); return; }
+  const dc = e.target.closest('.dchip'); if (dc) { e.stopPropagation(); setMode('diff'); select(dc.dataset.diff); return; }
+  const chip = e.target.closest('.rchip'); if (chip && chip.dataset.ref) { e.stopPropagation(); goto(chip.dataset.side, chip.dataset.ref); return; }
+  if (e.target.closest('a') || e.target.closest('.disc') || !e.target.closest('#eu-list')) return;
+  const card = e.target.closest('.card'); if (!card) return;
+  if (selected === card.dataset.id && e.target.closest('.t')) { card.classList.toggle('sel'); return; }
+  selectV(card.dataset.id);
+});
+
 /* ---------- init ---------- */
 decorate(); buildFilters(); buildSummary(); renderList(); renderAuth(); initAuth();
 const m = location.hash.match(/item=([^&]+)/);
 if (m && BY[decodeURIComponent(m[1])]) { const id = decodeURIComponent(m[1]); select(id, true); window.addEventListener('load', () => setTimeout(() => select(id), 30)); }
+const mv = location.hash.match(/(?:^#|&)v=([^&]+)/);
+if (EU && mv && EBY[decodeURIComponent(mv[1])]) { const id = decodeURIComponent(mv[1]); setMode('eu'); selectV(id, true); window.addEventListener('load', () => { setTimeout(() => selectV(id), 30); setTimeout(() => selectV(id), 600); }); }
+else if (EU && location.hash === '#eu') setMode('eu');
 
 /* ---------- self test (open index.html#selftest) ---------- */
 if (SELFTEST) {
   const res = {ok:true, items:ITEMS.length, refs:0, unresolved:[], selectFail:[], scrollFail:[], reverseFail:[], gotoFail:[], regions:{}, unmatchedArticles:{}, oneSidedRegions:{}};
   ITEMS.forEach(it => { for (const s of ['at','intl']) (it[SIDEKEY[s]]||[]).forEach(r => { res.refs++; if (!REG[s].get(r)) res.unresolved.push(it.id + ' ' + s + ' ' + r); }); });
+  // EU tab: every verdict renders, selects and highlights at least one AT region
+  res.verdicts = EV.length; res.verdictFail = [];
+  if (EU) {
+    EV.forEach(v => (v.at_refs || []).forEach(r => { res.refs++; if (!REG.at.get(r)) res.unresolved.push(v.id + ' at ' + r); }));
+    setMode('eu');
+    EV.forEach(v => { selectV(v.id, true); const card = document.querySelector('#eu-list .card.sel[data-id="' + CSS.escape(v.id) + '"]'); const hl = document.querySelectorAll('#body-at .region.hl').length; if (!card || ((v.at_refs || []).length && !hl)) res.verdictFail.push(v.id); });
+    if (res.verdictFail.length) res.ok = false;
+    setMode('diff');
+  }
   ITEMS.forEach(it => {
     F.region = null; renderList(); select(it.id);
     for (const s of ['at','intl']) {

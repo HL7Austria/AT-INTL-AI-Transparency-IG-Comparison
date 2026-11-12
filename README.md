@@ -25,6 +25,15 @@ and its comments, and is rebuilt automatically (GitHub Action, ~2–3 min) whene
   `equivalent`, `severity:*`). Labels win over the hidden block.
 - **Resolved** items: close the issue; the page keeps showing them, marked *closed*.
 
+## EU placement tab
+
+The second tab (**AT → EU**) shows, for every part of the AT IG, where it belongs under the chain
+Intl → HL7 Europe → AT: *→ EU*, *→ EU (via Intl)*, *stays AT*, *drop/replace* or *open question*.
+Each of these 55 verdicts is an [issue labelled `eu-verdict`](../../issues?q=label%3Aeu-verdict)
+(sections `### Rationale`, `### What should change`, `### Unverified reading`; labels `placement:*` and
+`confidence:*`). The summary data (open questions, decisions, gaps, EU IG skeleton, R4/R5 strategy) is in
+[`eu.json`](eu.json). It is based on the HL7 Europe IG proposal (Confluence), the AT IG and the AT ↔ Intl differences.
+
 ## Commenting on the page
 
 Anyone can **Sign in with GitHub** on the page and comment directly under each item; the comment
@@ -51,6 +60,7 @@ The IGs are read from `igs/at` and `igs/intl` (as checked out by CI) or from sib
 | `build.py` | renders both IGs from their FSH/markdown sources and the items into one self-contained `index.html` |
 | `template.html` | page shell (CSS + JS) |
 | `issues.py` | item ⇄ issue format, GitHub API |
+| `eu.json` | EU tab summary data (verdicts themselves are issues) |
 | `comparison.json` | summary, EU scenarios and the commits the items were reviewed against (no items) |
 | `compare.yaml` | IG commits rendered by CI |
 | `import_issues.py` | one-time import of the items from the earlier `diffs.json` |

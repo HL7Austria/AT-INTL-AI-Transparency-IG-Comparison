@@ -27,6 +27,7 @@ jobs:
     if: >-
       (github.event_name != 'issues' && github.event_name != 'issue_comment')
       || contains(github.event.issue.labels.*.name, 'comparison-item')
+      || contains(github.event.issue.labels.*.name, 'eu-verdict')
       || github.event.action == 'unlabeled'
     runs-on: ubuntu-latest
     steps:
